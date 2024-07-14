@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Rogue Class Diagram</title>
+  <script src="https://unpkg.com/gojs/release/go.js"></script>
+  <script id="code">
+    function init() {
+      var $ = go.GraphObject.make;
+
+      myDiagram =
+        $(go.Diagram, "myDiagramDiv",
+          {
+            "undoManager.isEnabled": true,
+            layout: $(go.ForceDirectedLayout)
+          });
+
+      myDiagram.nodeTemplate =
+        $(go.Node, "Auto",
+          $(go.Shape, "RoundedRectangle",
+            { strokeWidth: 0 },
+            new go.Binding("fill", "color")),
+          $(go.TextBlock,
+            { margin: 8 },
+            new go.Binding("text", "key"))
+        );
+
+      myDiagram.linkTemplate =
+        $(go.Link,
+          { routing: go.Link.AvoidsNodes, curve: go.Link.JumpOver },
+          $(go.Shape),
+          $(go.Shape, { toArrow: "Standard" })
+        );
+
+      myDiagram.model = new go.GraphLinksModel(
+        [
+          { key: "Rogue", color: "lightblue" },
+          { key: "StartingProficiencies", color: "lightgreen" },
+          { key: "StartingEquipment", color: "lightgreen" },
+          { key: "Multiclassing", color: "lightgreen" },
+          { key: "PHB", color: "lightyellow" },
+          { key: "Arcane Trickster", color: "lightcoral" },
+          { key: "Assassin", color: "lightcoral" },
+          { key: "Thief", color: "lightcoral" },
+          { key: "Expertise", color: "lightpink" },
+          { key: "Sneak Attack", color: "lightpink" },
+          { key: "Thieves' Cant", color: "lightpink" },
+          { key: "Cunning Action", color: "lightpink" },
+          { key: "Cunning Action: Aim", color: "lightpink" },
+          { key: "Roguish Archetype", color: "lightpink" },
+          { key: "Steady Aim", color: "lightpink" },
+          { key: "Ability Score Improvement", color: "lightpink" },
+          { key: "Proficiency Versatility", color: "lightpink" },
+          { key: "Uncanny Dodge", color: "lightpink" },
+          { key: "Evasion", color: "lightpink" },
+          { key: "Reliable Talent", color: "lightpink" },
+          { key: "Blindsense", color: "lightpink" },
+          { key: "Slippery Mind", color: "lightpink" },
+          { key: "Elusive", color: "lightpink" },
+          { key: "Stroke of Luck", color: "lightpink" },
+          { key: "acrobatics", color: "lightgray" },
+          { key: "athletics", color: "lightgray" },
+          { key: "deception", color: "lightgray" },
+          { key: "insight", color: "lightgray" },
+          { key: "intimidation", color: "lightgray" },
+          { key: "investigation", color: "lightgray" },
+          { key: "perception", color: "lightgray" },
+          { key: "performance", color: "lightgray" },
+          { key: "persuasion", color: "lightgray" },
+          { key: "sleight of hand", color: "lightgray" },
+          { key: "stealth", color: "lightgray" },
+          { key: "simple", color: "lightgray" },
+          { key: "hand crossbow", color: "lightgray" },
+          { key: "longsword", color: "lightgray" },
+          { key: "rapier", color: "lightgray" },
+          { key: "shortsword", color: "lightgray" },
+          { key: "light", color: "lightgray" }
+        ],
+        [
+          { from: "Rogue", to: "StartingProficiencies" },
+          { from: "Rogue", to: "StartingEquipment" },
+          { from: "Rogue", to: "Multiclassing" },
+          { from: "Rogue", to: "PHB" },
+          { from: "Rogue", to: "Arcane Trickster" },
+          { from: "Rogue", to: "Assassin" },
+          { from: "Rogue", to: "Thief" },
+          { from: "StartingProficiencies", to: "acrobatics" },
+          { from: "StartingProficiencies", to: "athletics" },
+          { from: "StartingProficiencies", to: "deception" },
+          { from: "StartingProficiencies", to: "insight" },
+          { from: "StartingProficiencies", to: "intimidation" },
+          { from: "StartingProficiencies", to: "investigation" },
+          { from: "StartingProficiencies", to: "perception" },
+          { from: "StartingProficiencies", to: "performance" },
+          { from: "StartingProficiencies", to: "persuasion" },
+          { from: "StartingProficiencies", to: "sleight of hand" },
+          { from: "StartingProficiencies", to: "stealth" },
+          { from: "StartingProficiencies", to: "simple" },
+          { from: "StartingProficiencies", to: "hand crossbow" },
+          { from: "StartingProficiencies", to: "longsword" },
+          { from: "StartingProficiencies", to: "rapier" },
+          { from: "StartingProficiencies", to: "shortsword" },
+          { from: "Multiclassing", to: "acrobatics" },
+          { from: "Multiclassing", to: "athletics" },
+          { from: "Multiclassing", to: "deception" },
+          { from: "Multiclassing", to: "insight" },
+          { from: "Multiclassing", to: "intimidation" },
+          { from: "Multiclassing", to: "investigation" },
+          { from: "Multiclassing", to: "perception" },
+          { from: "Multiclassing", to: "performance" },
+          { from: "Multiclassing", to: "persuasion" },
+          { from: "Multiclassing", to: "sleight of hand" },
+          { from: "Multiclassing", to: "stealth" },
+          { from: "Multiclassing", to: "light" },
+          { from: "Arcane Trickster", to: "Expertise" },
+          { from: "Arcane Trickster", to: "Magical Ambush" },
+          { from: "Arcane Trickster", to: "Versatile Trickster" },
+          { from: "Arcane Trickster", to: "Spell Thief" },
+          { from: "Assassin", to: "Infiltration Expertise" },
+          { from: "Assassin", to: "Impostor" },
+          { from: "Assassin", to: "Death Strike" },
+          { from: "Thief", to: "Supreme Sneak" },
+          { from: "Thief", to: "Use Magic Device" },
+          { from: "Thief", to: "Thief's Reflexes" },
+          { from: "Rogue", to: "Expertise" },
+          { from: "Rogue", to: "Sneak Attack" },
+          { from: "Rogue", to: "Thieves' Cant" },
+          { from: "Rogue", to: "Cunning Action" },
+          { from: "Rogue", to: "Cunning Action: Aim" },
+          { from: "Rogue", to: "Roguish Archetype" },
+          { from: "Rogue", to: "Steady Aim" },
+          { from: "Rogue", to: "Ability Score Improvement" },
+          { from: "Rogue", to: "Proficiency Versatility" },
+          { from: "Rogue", to: "Uncanny Dodge" },
+          { from: "Rogue", to: "Evasion" },
+          { from: "Rogue", to: "Reliable Talent" },
+          { from: "Rogue", to: "Blindsense" },
+          { from: "Rogue", to: "Slippery Mind" },
+          { from: "Rogue", to: "Elusive" },
+          { from: "Rogue", to: "Stroke of Luck" }
+        ]);
+    }
+  </script>
+</head>
+<body onload="init()">
+  <div id="myDiagramDiv" style="width: 100%; height: 600px; border: 1px solid black;"></div>
+</body>
+</html>

@@ -1,0 +1,10 @@
+name,classname,level,spellslotlevel,slots,cantrips_known,spells_known
+Aasimar,Bard,4,4.0,"[4, 3, 0, 0, 0, 0, 0, 0, 0]","[2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]","[4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 15, 16, 18, 19, 19, 20, 22, 22, 22]"
+Aarakocra,Wizard,3,3.0,"[4, 2, 0, 0, 0, 0, 0, 0, 0]","[3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]","[6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44]"
+Aven,Fighter,5,,,"[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]","[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]"
+Aetherborn,Druid,2,,,"[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]","[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]"
+Aarakocra,Rogue,5,,,"[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]","[None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]"
+Aasimar,Cleric,9,,,"[3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]","[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]"
+Vampire,Paladin,8,,,"[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]","[0, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11]"
+Halfling,Sorcerer,4,,,"[4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]","[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15]"
+Dragonborn,Warlock,6,,,"[2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]","[2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15]"

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Character</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .column {
+            flex: 1;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        /* Optional: Add some styles for better visual separation */
+        .column:nth-child(1) {
+            background-color: #f0f0f0;
+        }
+
+        .column:nth-child(2) {
+            background-color: #d0d0d0;
+        }
+
+        .left-column,
+        .right-column {
+            flex: 1;
+            min-width: 300px;
+            margin: 10px;
+        }
+
+        .form-section {
+            margin-bottom: 20px;
+        }
+
+        .form-section label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-section select,
+        .form-section input[type="range"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .option-button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .option-button:hover {
+            background-color: #ddd;
+        }
+
+        .selected {
+            background-color: green;
+            color: white;
+        }
+
+        .not-selected {
+            background-color: red;
+            color: white;
+        }
+
+        .slider-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin: 20px 0;
+        }
+
+        .slider-container input[type="range"] {
+            width: 100%;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .slider-labels .fa {
+            font-size: 24px;
+        }
+
+        .alignment-label {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .form-section-heading {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .details-card {
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .details-card h2 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Create Character</h1>
+    <div class="container">
+        <div class="left-column">
+            <form id="character-form">
+                <div class="form-section">
+                    <div class="form-section-heading">Basic Information</div>
+                    <label for="race">Race:</label>
+                    <select id="race" name="race">
+                        {% for race in races %}
+                        <option value="{{ race[0] }}">{{ race[1] }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="class">Class:</label>
+                    <select id="class" name="class">
+                        {% for class in classes %}
+                        <option value="{{ class[0] }}">{{ class[1] }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="subclass">Subclass:</label>
+                    <select id="subclass" name="subclass">
+                        {% for subclass in subclasses %}
+                        <option value="{{ subclass[0] }}">{{ subclass[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section-heading">Alignment</div>
+                    <label for="alignment">Alignment:</label>
+                    <div class="slider-container">
+                        <input type="range" id="alignment-slider" name="alignment" min="0" max="8" step="1" value="4">
+                        <div class="slider-labels">
+                            <i class="fas fa-skull"></i>
+                            <i class="fas fa-halo"></i>
+                        </div>
+                    </div>
+                    <div class="alignment-label" id="alignment-label">True Neutral</div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section-heading">Background</div>
+                    <label for="background">Background:</label>
+                    <select id="background" name="background">
+                        {% for background in backgrounds %}
+                        <option value="{{ background[0] }}">{{ background[1] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section-heading">Starting Equipment</div>
+                    <div id="starting-equipment-container">
+                        <!-- Starting equipment options will be dynamically created here -->
+                    </div>
+                </div>
+
+                <button type="submit">Create Character</button>
+            </form>
+        </div>
+        <div class="right-column">
+            <div class="details-card" id="details-card">
+                <h2>Character Details</h2>
+                <div id="race-details"></div>
+                <div id="class-details"></div>
+                <div id="subclass-details"></div>
+                <div id="background-details"></div>
+                <div id="alignment-details"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            async function fetchAndDisplay(endpoint, data, target, append = false) {
+                console.log(data);
+                console.log(endpoint)
+                try {
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await response.text(); // Assuming the server returns HTML
+                    console.log('Result:' + result)
+                    if (append) {
+                        $(target).append(result);
+                    } else {
+                        $(target).empty().html(result);
+                    }
+                } catch (err) {
+                    console.error('Error fetching data from ' + endpoint + ':', err);
+                    $(target).empty().html('<p>Error fetching data. Please try again later.</p>');
+                }
+            }
+    
+            $('#race').change(function () {
+                var race = $(this).val();
+                console.log(race); // Log the race value to ensure it's correct
+                if (race) {
+                    fetchAndDisplay('/get_race_details', { race: race }, '#race-details', false);
+                    fetchAndDisplay('/get_speeds', { race: race }, '#race-details', true); // Append speeds data
+                } else {
+                    $('#race-details').empty();
+                }
+            });
+    
+            $('#class').change(function () {
+                var cls = $(this).val();
+                if (cls) {
+                    console.log(cls); // Log the class value to ensure it's correct
+                    fetchAndDisplay('/get_class_details', { class: cls }, '#class-details');
+                    fetchAndDisplay('/get_starting_equipment', { class: cls }, '#starting-equipment-container');
+                } else {
+                    $('#class-details').empty();
+                    //$('#starting-equipment-container').empty();
+                }
+            });
+    
+            $('#subclass').change(function () {
+                var subclass = $(this).val();
+                if (subclass) {
+                    fetchAndDisplay('/get_subclass_details', { subclass: subclass }, '#subclass-details');
+                } else {
+                    $('#subclass-details').empty();
+                }
+            });
+    
+            $('#background').change(function () {
+                var background = $(this).val();
+                if (background) {
+                    fetchAndDisplay('/get_background_details', { background: background }, '#background-details');
+                } else {
+                    $('#background-details').empty();
+                }
+            });
+    
+            $('#alignment-slider').on('input', function () {
+                var value = $(this).val();
+                var alignments = [
+                    "Lawful Good", "Neutral Good", "Chaotic Good",
+                    "Lawful Neutral", "True Neutral", "Chaotic Neutral",
+                    "Lawful Evil", "Neutral Evil", "Chaotic Evil"
+                ];
+                $('#alignment-label').text(alignments[value]);
+                fetchAndDisplay('/get_alignment_details', { alignment: value }, '#alignment-details');
+            });
+        });
+    </script>
+   
+</body>
+</html>

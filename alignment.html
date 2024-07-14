@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alignment Sliders</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-color: #f0f0f0;
+        }
+        .slider-container {
+            position: relative;
+            width: 33%;
+            margin: 20px auto;
+        }
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 30px;
+            border-radius: 5px;
+            background: linear-gradient(to right, red, yellow, green);
+            outline: none;
+            opacity: 0.9;
+            transition: opacity .2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: url('static/scales.svg') no-repeat center center;
+            background-size: contain;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .slider::-moz-range-thumb {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: url('static/scales.svg') no-repeat center center;
+            background-size: contain;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .labels {
+            display: flex;
+            justify-content: space-between;
+            position: absolute;
+            width: 100%;
+            top: -50px;
+            left: 0;
+        }
+        .labels img {
+            width: 30px;
+            height: 30px;
+        }
+        .alignment-text {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Alignment Sliders</h1>
+    <div class="slider-container">
+        <div class="labels">
+            <img src="static/angel-wings.svg" alt="Good">
+            <img src="static/scales.svg" alt="Neutral">
+            <img src="static/devil-mask.svg" alt="Evil">
+        </div>
+        <input type="range" min="0" max="100" value="50" class="slider" id="alignmentSlider">
+    </div>
+    <div class="alignment-text" id="alignmentText">Neutral</div>
+
+    <div class="slider-container">
+        <div class="labels" style="top: -50px;">
+            <img src="static/angel-wings.svg" alt="Lawful">
+            <img src="static/scales.svg" alt="Neutral">
+            <img src="static/devil-mask.svg" alt="Chaotic">
+        </div>
+        <input type="range" min="0" max="100" value="50" class="slider" id="lawfulChaoticSlider">
+    </div>
+    <div class="alignment-text" id="lawfulChaoticText">Neutral</div>
+
+    <script>
+        const alignmentSlider = document.getElementById('alignmentSlider');
+        const alignmentText = document.getElementById('alignmentText');
+        const lawfulChaoticSlider = document.getElementById('lawfulChaoticSlider');
+        const lawfulChaoticText = document.getElementById('lawfulChaoticText');
+
+        const updateSliderThumb = (slider, value) => {
+            let thumbImage;
+            if (value < 33) {
+                thumbImage = 'static/angel-wings.svg';
+            } else if (value < 66) {
+                thumbImage = 'static/scales.svg';
+            } else {
+                thumbImage = 'static/devil-mask.svg';
+            }
+            slider.style.background = `url('${thumbImage}') no-repeat center center`;
+            slider.style.backgroundSize = 'contain';
+        };
+
+        alignmentSlider.addEventListener('input', function() {
+            const value = alignmentSlider.value;
+            if (value < 33) {
+                alignmentText.textContent = 'Good';
+            } else if (value < 66) {
+                alignmentText.textContent = 'Neutral';
+            } else {
+                alignmentText.textContent = 'Evil';
+            }
+            updateSliderThumb(alignmentSlider, value);
+        });
+
+        lawfulChaoticSlider.addEventListener('input', function() {
+            const value = lawfulChaoticSlider.value;
+            if (value < 33) {
+                lawfulChaoticText.textContent = 'Lawful';
+            } else if (value < 66) {
+                lawfulChaoticText.textContent = 'Neutral';
+            } else {
+                lawfulChaoticText.textContent = 'Chaotic';
+            }
+            updateSliderThumb(lawfulChaoticSlider, value);
+        });
+
+        // Initial thumb image setup
+        updateSliderThumb(alignmentSlider, alignmentSlider.value);
+        updateSliderThumb(lawfulChaoticSlider, lawfulChaoticSlider.value);
+    </script>
+</body>
+</html>
