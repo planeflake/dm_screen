@@ -9,6 +9,17 @@ user = 'neo4j'
 password = '0kc1APDksb8vIkSWOraGix4fulXDzr6d_81Uw5JLDbs'
 driver = GraphDatabase.driver(uri, auth=(user, password))
 
+from neo4j import GraphDatabase
+import json
+import os
+
+# Establish connection to the Neo4j database
+uri = "bolt://localhost:7687"
+username = "neo4j"
+password = "password"  # Change this to your actual password
+
+driver = GraphDatabase.driver(uri, auth=(username, password))
+
 def create_or_update_class(tx, class_name, class_source):
     query = """
     MERGE (c:Class {name: $class_name})

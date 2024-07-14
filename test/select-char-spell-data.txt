@@ -1,0 +1,22 @@
+SELECT 
+    r.name,
+    cl.name AS ClassName,
+    ch.level,
+    ss.level AS SpellSlotLevel,
+    ss.slots,
+    ss.cantrips_known,
+    ss.spells_known
+FROM 
+    public.characters AS ch
+LEFT JOIN 
+    races AS r ON r.id = ch.race_id
+LEFT JOIN 
+    classes AS cl ON ch.class_id = cl.id
+LEFT JOIN 
+    spell_slots AS ss 
+    ON ss.class_id = ch.class_id 
+    AND ch.level = ss.level 
+    AND (ch.subclass_id = ss.subclass_id OR ss.subclass_id IS NULL)
+WHERE 
+    ch.campaign_id = 1;
+

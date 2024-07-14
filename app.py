@@ -6,13 +6,6 @@ import os
 import json
 from openai import OpenAI
 from dotenv import load_dotenv
-import psycopg2
-from psycopg2 import sql
-
-db="rpgdb"
-username="postgres"
-passw="."
-hostname="localhost"
 
 load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -34,12 +27,6 @@ players_list = [
     {'username': 'dm'},
     {'username': 'dm2'}
 ]
-db_params = {
-    "dbname": "rpgdb",
-    "user": "postgres",
-    "password": ".",
-    "host": "localhost"
-}
 characters = [
     {"id": 1, "name": "Character 1", "hit_points": 100},
     {"id": 2, "name": "Character 2", "hit_points": 90}
@@ -106,120 +93,6 @@ def get_characters_for_player(username):
         characters = [{"name": record["name"], "id": record["id"]} for record in result]
     return characters
 
-def get_spell_slots(class_name, level):
-    # Connect to your PostgreSQL database
-    conn = psycopg2.connect(
-        dbname=db,
-        user=username,
-        password=passw,
-        host=hostname
-    )
-
-    # Create a cursor object
-    cur = conn.cursor()
-
-    # Define your query
-    query = """
-    SELECT slots FROM spell_slots WHERE class_id = (SELECT id from classes where name = %s) and level = %s;
-    """
-    # Execute the query
-    cur.execute(query, (class_name, level))
-
-    # Fetch all the results
-    results = cur.fetchall()
-
-    # Assuming there's always at least one result
-    if results:
-        data = results[0][0]
-    else:
-        data = None
-
-    #print(data)  # Print the data for debugging
-
-    # Close the cursor and connection
-    cur.close()
-    conn.close()
-
-    return data
-
-def get_db_connection():
-    conn = psycopg2.connect(**db_params)
-    return conn
-
-@app.route('/postgrestest')
-def postgresindex():
-    conn = get_db_connection()
-    cur = conn.cursor()
-
-    cur.execute("SELECT id, name FROM races")
-    races = cur.fetchall()
-
-    cur.execute("SELECT id, name FROM classes")
-    classes = cur.fetchall()
-
-    cur.execute("SELECT id, name FROM subclasses")
-    subclasses = cur.fetchall()
-
-    cur.execute("SELECT id, name FROM alignments")
-    alignments = cur.fetchall()
-
-    cur.execute("SELECT id, name FROM backgrounds")
-    backgrounds = cur.fetchall()
-
-    cur.close()
-    conn.close()
-
-    return render_template('/postgrestest.html', races=races, classes=classes, subclasses=subclasses, alignments=alignments, backgrounds=backgrounds)
-
-@app.route('/get_starting_equipment', methods=['POST'])
-def get_starting_equipment():
-    class_id = request.json.get('class')
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT default_equipment FROM starting_equipment WHERE class_id = %s", (class_id,))
-    equipment = cur.fetchone()
-    cur.close()
-    conn.close()
-
-    if equipment:
-        equipment_options = equipment[0]  # Directly use the fetched data
-    else:
-        equipment_options = []
-
-    simplified_options = []
-    for item_set in equipment_options:
-        options = []
-        for key, items in item_set.items():
-            item_text = ', '.join(
-                [f"{item['item']} (x{item['quantity']})" if isinstance(item, dict) else item for item in items]
-            )
-            options.append({'option': key, 'items': item_text})
-        simplified_options.append(options)
-
-    #print('Returning equipment options:', equipment_options)
-    print('Returning simplified options:', simplified_options)
-
-    return jsonify(simplified_options)
-
-def get_character_spell_data():
-    """select s.slots from spell_slots as s where class_id = 10 and level = 5
-    select spell_slot_level,count(*) from spell_slots_usage where character_id = 371
-    group by spell_slot_level"""
-    conn = get_db_connection()
-    cur = conn.cursor()
-
-    query = """
-    SELECT spell_slot_level, count(*) FROM spell_slots_usage WHERE character_id = 371
-    GROUP BY spell_slot_level
-    """
-    cur.execute(query)
-    spell_data = cur.fetchall()
-
-    cur.close()
-    conn.close()
-
-    return spell_data
-
 def get_conditions():
     with driver.session() as session:
         result = session.run("MATCH (c:Condition) RETURN c.name AS name, c.icon AS icon")
@@ -243,14 +116,7 @@ def get_characters_for_dm():
             """
         )
         characters = []
-        spell_data = []
         for record in result:
-
-            spell_data = get_spell_slots(record["className"], record['level'])
-            print(spell_data)
-            print( record["characterName"])
-            print(record["className"])
-
             characters.append({
                 "name": record["characterName"],
                 "id": record["characterId"],
@@ -269,8 +135,8 @@ def get_characters_for_dm():
                 "type": record["type"],
                 "hp": record['hp'],
                 "max_hp": record['hp'],
-                "spell_slots" : spell_data,
-                "spell_slots_used" :"2,2,2"
+                "spell_slots" : 3,
+                "spell_slots_used" : 2
             })
         return characters
 
@@ -305,247 +171,9 @@ def get_classes():
 
 def get_races():
     with driver.session() as session:
-        result = session.run("MATCH (r:Races) RETURN r.name AS name")
+        result = session.run("MATCH (r:Race) RETURN r.name AS name")
         races = [record["name"] for record in result]
     return races
-
-@app.route('/get_speeds', methods=['POST'])
-def get_speeds():
-    race_id = request.json.get('race')  # Use request.json to get data from JSON payload
-
-    if not race_id:
-        return "Race ID is required.", 400
-
-    conn = get_db_connection()
-    cur = conn.cursor()
-
-    query = """
-    SELECT type, value FROM speed
-    WHERE race_id = %s
-    """
-    cur.execute(query, (race_id,))
-    race_speeds = cur.fetchall()
-
-    cur.close()
-    conn.close()
-
-    if race_speeds:
-        speeds = "<p><strong>Speeds:</strong></p>"
-        for speed in race_speeds:
-            speeds += f"""
-            <p><strong>{speed[0].replace('_', ' ').title()}:</strong> {speed[1]}</p>
-            """
-        return speeds
-    else:
-        return "No speeds found for this race."
-
-@app.route('/get_race_details', methods=['POST'])
-def get_race_details():
-    race_id = request.json.get('race') 
-    print(race_id)
-    conn = get_db_connection()
-    cur = conn.cursor()
-
-    query = """
-    SELECT 
-        r.source, r.id, r.name, r.page, r.size, r.darkvision, r.has_fluff, r.has_fluff_images,
-        f.source as fluff_source, f.fluff_data 
-    FROM races r
-    LEFT JOIN fluff f ON r.id = f.race_id
-    WHERE r.id = %s;
-    """
-    
-    cur.execute(query, (race_id,))
-    race_details = cur.fetchone()
-
-    query = """
-    SELECT type, value FROM speed WHERE race_id = %s
-    """
-    cur.execute(query, (race_id,))
-    race_speeds = cur.fetchall()
-
-    query = """
-    SELECT name,source,cover_url FROM source_books WHERE source = %s;"""
-    cur.execute(query, (race_details[0],))
-    race_source = cur.fetchall()
-    print(race_source)
-
-    cur.close()
-    conn.close()
-    
-    source_image_url = race_source[0][2].replace('img','static')
-    print(source_image_url)
-    if race_details:
-        details = f"""
-        <div class="container">
-        <div class="column">
-
-        <p><strong>Source:</strong> {race_source[0][0]}</p>
-        <p><strong>Name:</strong> {race_details[2]}</p>
-        <p><strong>Page:</strong> {race_details[3]}</p>
-        <p><strong>Size:</strong> {race_details[4]}</p>
-        <p><strong>Speeds:</strong></p>
-        """
-        for speed in race_speeds:
-            details += f"<p><strong>{speed[0].replace('_', ' ').title()}:</strong> {speed[1]}</p>"
-        
-        details += f"""
-        <p><strong>Darkvision:</strong> {race_details[5]}</p>
-        </div>
-        <div class="column">
-        <img src= {source_image_url} alt="Cover Image" style="width:200px;height:250px;">
-        </div>
-        </div>        
-        <p><strong>Fluff Data:</strong> {race_details[9]}</p>        
-        """
-        return details
-    else:
-        return "No details found for this race."
-
-@app.route('/get_class_details', methods=['POST'])
-def get_class_details():
-    class_id = request.json.get('class') 
-    print('Class ID:' + class_id)
-    conn = get_db_connection()
-    cur = conn.cursor()
-
-    # First, check if spellcasting_ability is not null
-    cur.execute("SELECT spellcasting_ability FROM classes WHERE id = %s", (class_id,))
-    spellcasting_ability = cur.fetchone()
-
-    if spellcasting_ability and spellcasting_ability[0] is not None:
-        query = """
-        SELECT 
-            name,
-            source,
-            page,
-            spellcasting_ability,
-            caster_progression,
-            prepared_spells,
-            cantrip_progression,
-            spells_known_progression,
-            additional_spells
-        FROM 
-            classes
-        WHERE
-            id = %s
-        """
-    else:
-        query = """
-        SELECT 
-            name,
-            source,
-            page
-        FROM 
-            classes
-        WHERE
-            id = %s
-        """
-    
-    cur.execute(query, (class_id,))
-    class_details = cur.fetchone()
-    cur.close()
-    conn.close()
-    
-    if class_details:
-        details = "<p><strong>Class Details:</strong></p>"
-        columns = ['name', 'source', 'page', 'spellcasting_ability', 'caster_progression', 'prepared_spells', 'cantrip_progression', 'spells_known_progression', 'additional_spells']
-        for i, value in enumerate(class_details):
-            if value is not None:
-                details += f"<p><strong>{columns[i].replace('_', ' ').title()}:</strong> {value}</p>"
-        return details
-    else:
-        return "No details found for this class."
-
-@app.route('/get_background_details', methods=['POST'])
-def get_background_details():
-    background_id = request.json.get('background') 
-    
-    conn = get_db_connection()
-    cur = conn.cursor()
-
-    query = """
-    SELECT 
-        name, 
-        source, 
-        description 
-    FROM backgrounds 
-    WHERE id = %s;
-    """
-    
-    cur.execute(query, (background_id,))
-    background_details = cur.fetchone()
-    
-    cur.close()
-    conn.close()
-    
-    if background_details:
-        details = f"""
-        <p><strong>Background:</strong> {background_details[0]}</p>
-        <p><strong>Source:</strong> {background_details[1]}</p>
-        <p><strong>Description:</strong> {background_details[2]}</p>
-        """
-        return details
-    else:
-        return "No details found for this background."
-
-@app.route('/get_subclass_details', methods=['POST'])
-def get_subclass_details():
-    subclass_id = request.form['subclass']
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    query = """
-    SELECT name, source, description FROM subclasses WHERE id = %s;
-    """
-    
-    cur.execute(query, (subclass_id,))
-    subclass_details = cur.fetchone()
-    
-    cur.close()
-    conn.close()
-    
-    details = f"""
-    <h3>{subclass_details[0]}</h3>
-    <p><strong>Source:</strong> {subclass_details[1]}</p>
-    <p><strong>Description:</strong> {subclass_details[2]}</p>
-    """
-    return details
-
-@app.route('/get_alignment_details', methods=['POST'])
-def get_alignment_details():
-    alignment_index = int(request.form['alignment'])
-    alignments = [
-        "Lawful Good", "Neutral Good", "Chaotic Good",
-        "Lawful Neutral", "True Neutral", "Chaotic Neutral",
-        "Lawful Evil", "Neutral Evil", "Chaotic Evil"
-    ]
-    alignment = alignments[alignment_index]
-    
-    details = f"""
-   <h3>Alignment: {alignment}</h3>
-    """
-    return details
-
-@app.route('/get_sources_with_covers', methods=['GET'])
-def get_sources_with_covers():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT name, source, cover_image FROM books")
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-
-    sources = []
-    for row in rows:
-        source = {
-            'name': row[0],
-            'source': row[1],
-            'cover_image': row[2]
-        }
-        sources.append(source)
-
-    return jsonify(sources)
 
 def get_alignments():
     return ['Lawful Good', 'Neutral Good', 'Chaotic Good', 'Lawful Neutral', 'True Neutral', 'Chaotic Neutral', 'Lawful Evil', 'Neutral Evil', 'Chaotic Evil']
@@ -865,11 +493,8 @@ def create_character():
             session.run(
                 """
                 MERGE (p:Player {username: $username})
-                WITH p
                 MATCH (cl:Class {name: $char_class})
-                WITH p, cl
                 MATCH (r:Race {name: $char_race})
-                WITH p, cl, r
                 CREATE (char:Character {
                     name: $name,
                     level: $level,
@@ -885,11 +510,8 @@ def create_character():
                     alignment: $alignment,
                     background: $background
                 })
-                WITH p, char, cl, r
                 CREATE (p)-[:HAS_CHARACTER]->(char)
-                WITH p, char, cl, r
                 CREATE (char)-[:BELONGS_TO_CLASS]->(cl)
-                WITH p, char, cl, r
                 CREATE (char)-[:BELONGS_TO_RACE]->(r)
                 """,
                 username=username, name=name, char_class=char_class, char_race=char_race,
@@ -897,8 +519,7 @@ def create_character():
                 intelligence=intelligence, wisdom=wisdom, charisma=charisma, hit_points=hit_points,
                 armor_class=armor_class, speed=speed, alignment=alignment, background=background
             )
-
-        return redirect(url_for('player_dashboard', username=username))
+        return redirect(url_for('players_main', username=username))
     else:
         classes = get_classes()
         races = get_races()

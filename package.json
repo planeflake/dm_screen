@@ -19,7 +19,6 @@
   "homepage": "https://github.com/planeflake/digital_dm_screen#readme",
   "dependencies": {
     "dgram": "^1.0.1",
-    "express": "^4.19.2",
-    "gojs": "^3.0.7"
+    "express": "^4.19.2"
   }
 }

@@ -45,8 +45,8 @@
             position: relative;
             display: inline-block;
             margin: 10px;
-            width: 350px;
-            height: 450px;
+            width: 450px;
+            height: 550px;
             background-size: cover;
             background-repeat: no-repeat;
             background-position: center;
@@ -323,7 +323,7 @@
                 <label for="player-select">Select Player:</label>
                 <select id="player-select">
                     {% for character in characters %}
-                    <option value="{{ character.id }}-card">{{ character.name }}</option>
+                    <option value="{{ character.id }}-card">{{ character.class }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -400,7 +400,6 @@
                         </div>
                         <div class="spell-slots">
                             {% for level, slots in character.spell_slots.items %}
-                            console.log(character.spell_slots);
                             <div>
                                 <span>Level {{ level }}</span>
                                 {% for slot in slots %}
@@ -609,20 +608,20 @@
             const bannerContainer = banner.parentElement;
 
             let startX = event.clientX || event.touches[0].clientX;
-            //let startY = event.clientY || event.touches[0].clientY;
+            let startY = event.clientY || event.touches[0].clientY;
 
             let startRight = parseFloat(banner.style.right);
             let startTop = parseFloat(banner.style.top);
 
             function onDrag(e) {
                 let currentX = e.clientX || e.touches[0].clientX;
-                //let currentY = e.clientY || e.touches[0].clientY;
+                let currentY = e.clientY || e.touches[0].clientY;
 
                 let dx = currentX - startX;
-                //let dy = currentY - startY;
+                let dy = currentY - startY;
 
                 banner.style.right = `${startRight - (dx / bannerContainer.offsetWidth) * 100}%`;
-                //banner.style.top = `${startTop + dy}px`;
+                banner.style.top = `${startTop + dy}px`;
             }
 
             function onStopDrag() {

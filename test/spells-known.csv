@@ -1,0 +1,161 @@
+class,subclass,level,spellsknown,cantripsknown
+Bard,,1,4,2.0
+Bard,,2,5,2.0
+Bard,,3,6,2.0
+Bard,,4,7,3.0
+Bard,,5,8,3.0
+Bard,,6,9,3.0
+Bard,,7,10,3.0
+Bard,,8,11,3.0
+Bard,,9,12,3.0
+Bard,,10,14,4.0
+Bard,,11,15,4.0
+Bard,,12,15,4.0
+Bard,,13,16,4.0
+Bard,,14,18,4.0
+Bard,,15,19,4.0
+Bard,,16,19,4.0
+Bard,,17,20,4.0
+Bard,,18,22,4.0
+Bard,,19,22,4.0
+Bard,,20,22,4.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},1,0,0.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},2,0,0.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},3,3,2.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},4,4,2.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},5,4,2.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},6,4,2.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},7,5,2.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},8,6,2.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},9,6,2.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},10,7,3.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},11,8,3.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},12,8,3.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},13,9,3.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},14,10,3.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},15,10,3.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},16,11,3.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},17,11,3.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},18,11,3.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},19,12,3.0
+Fighter,{@filter Cantrips Known|spells|level=0|subclass=Eldritch Knight},20,13,3.0
+Ranger,,1,0,
+Ranger,,2,2,
+Ranger,,3,3,
+Ranger,,4,3,
+Ranger,,5,4,
+Ranger,,6,4,
+Ranger,,7,5,
+Ranger,,8,5,
+Ranger,,9,6,
+Ranger,,10,6,
+Ranger,,11,7,
+Ranger,,12,7,
+Ranger,,13,8,
+Ranger,,14,8,
+Ranger,,15,9,
+Ranger,,16,9,
+Ranger,,17,10,
+Ranger,,18,10,
+Ranger,,19,11,
+Ranger,,20,11,
+Ranger (Revised),,1,0,
+Ranger (Revised),,2,2,
+Ranger (Revised),,3,3,
+Ranger (Revised),,4,3,
+Ranger (Revised),,5,4,
+Ranger (Revised),,6,4,
+Ranger (Revised),,7,5,
+Ranger (Revised),,8,5,
+Ranger (Revised),,9,6,
+Ranger (Revised),,10,6,
+Ranger (Revised),,11,7,
+Ranger (Revised),,12,7,
+Ranger (Revised),,13,8,
+Ranger (Revised),,14,8,
+Ranger (Revised),,15,9,
+Ranger (Revised),,16,9,
+Ranger (Revised),,17,10,
+Ranger (Revised),,18,10,
+Ranger (Revised),,19,11,
+Ranger (Revised),,20,11,
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},1,0,0.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},2,0,0.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},3,3,3.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},4,4,3.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},5,4,3.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},6,4,3.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},7,5,3.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},8,6,3.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},9,6,3.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},10,7,4.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},11,8,4.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},12,8,4.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},13,9,4.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},14,10,4.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},15,10,4.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},16,11,4.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},17,11,4.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},18,11,4.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},19,12,4.0
+Rogue,{@filter Cantrips Known|spells|level=0|subclass=Arcane Trickster},20,13,4.0
+Sorcerer,,1,2,4.0
+Sorcerer,,2,3,4.0
+Sorcerer,,3,4,4.0
+Sorcerer,,4,5,5.0
+Sorcerer,,5,6,5.0
+Sorcerer,,6,7,5.0
+Sorcerer,,7,8,5.0
+Sorcerer,,8,9,5.0
+Sorcerer,,9,10,5.0
+Sorcerer,,10,11,6.0
+Sorcerer,,11,12,6.0
+Sorcerer,,12,12,6.0
+Sorcerer,,13,13,6.0
+Sorcerer,,14,13,6.0
+Sorcerer,,15,14,6.0
+Sorcerer,,16,14,6.0
+Sorcerer,,17,15,6.0
+Sorcerer,,18,15,6.0
+Sorcerer,,19,15,6.0
+Sorcerer,,20,15,6.0
+Warlock,,1,2,2.0
+Warlock,,2,3,2.0
+Warlock,,3,4,2.0
+Warlock,,4,5,3.0
+Warlock,,5,6,3.0
+Warlock,,6,7,3.0
+Warlock,,7,8,3.0
+Warlock,,8,9,3.0
+Warlock,,9,10,3.0
+Warlock,,10,10,4.0
+Warlock,,11,11,4.0
+Warlock,,12,11,4.0
+Warlock,,13,12,4.0
+Warlock,,14,12,4.0
+Warlock,,15,13,4.0
+Warlock,,16,13,4.0
+Warlock,,17,14,4.0
+Warlock,,18,14,4.0
+Warlock,,19,15,4.0
+Warlock,,20,15,4.0
+Artificer,,1,0,
+Artificer,,2,0,
+Artificer,,3,3,
+Artificer,,4,4,
+Artificer,,5,4,
+Artificer,,6,4,
+Artificer,,7,5,
+Artificer,,8,6,
+Artificer,,9,6,
+Artificer,,10,7,
+Artificer,,11,8,
+Artificer,,12,8,
+Artificer,,13,9,
+Artificer,,14,10,
+Artificer,,15,10,
+Artificer,,16,11,
+Artificer,,17,11,
+Artificer,,18,11,
+Artificer,,19,12,
+Artificer,,20,13,
