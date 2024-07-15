@@ -129,39 +129,17 @@
             color: black;
         }
 
-        .spell-slots {
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 5px;
-        }
-
-        .spell-slots div {
-            display: flex;
-            align-items: left;
-            justify-content: flex-start;
-            margin-bottom: 5px;
-        }
-
-        .spell-slots span {
-            color: black;
-            margin-right: 10px;
-        }
-
-        .spell-slots .slot {
+        .spell-slot {
             display: inline-block;
             width: 20px;
             height: 20px;
-            margin-right: 2px;
-            border-radius: 3px;
-            background-color: white;
+            margin: 2px;
+            border: 1px solid black;
         }
-
-        .spell-slots .slot.available {
+        .available-slot {
             background-color: black;
         }
-
-        .spell-slots .slot.used {
+        .used-slot {
             background-color: red;
         }
 
@@ -323,7 +301,7 @@
                 <label for="player-select">Select Player:</label>
                 <select id="player-select">
                     {% for character in characters %}
-                    <option value="{{ character.id }}-card">{{ character.class }}</option>
+                    <option value="{{ character.id }}-card">{{ character.class_name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -355,291 +333,298 @@
             <button id="add-condition">Add Condition</button>
         </div>
         <div id="character-cards">
-            {% for character in characters %}
-            <div id="{{ character.id }}-card" class="image-container"
-                style="background-image: url('src/images/{{ character.id }}/uninjured.jpg');">
+            {% for character_id, character in characters.items() %}
+            <div id="{{ character_id }}-card" class="image-container"
+                style="background-image: url('/static/images/{{ character_id }}/uninjured.png');">
                 <div class="character-card">
                     <div class="character-info">
                         <div class="character-header">
-                            <h1>{{ character.name }} - {{ character.id}}</h1>
-                            <h2>{{ character.class }}</h2>
-                            <span>Level {{ character.level }}</span>
+                            <h1>{{ character['race_name'] }} - {{ character['class_name'] }}</h1>
+                            <h2>{{ character['background'] }} - {{ character['alignment'] }}</h2>
+                            <span>Level {{ character['level'] }}</span>
                         </div>
                         <div class="character-stats">
                             <div>
-                                <i class="fas fa-dumbbell"></i><span>Str: {{ character.str }}</span>
-                                <i class="fas fa-running"></i><span>Dex: {{ character.dex }}</span>
-                                <i class="fas fa-heartbeat"></i><span>Con: {{ character.con }}</span>
+                                <i class="fas fa-dumbbell"></i><span>Str: {{ character['strength'] }}</span>
+                                <i class="fas fa-running"></i><span>Dex: {{ character['dexterity'] }}</span>
+                                <i class="fas fa-heartbeat"></i><span>Con: {{ character['constitution'] }}</span>
                             </div>
                             <div>
-                                <i class="fas fa-brain"></i><span>Int: {{ character.int }}</span>
-                                <i class="fas fa-eye"></i><span>Wis: {{ character.wis }}</span>
-                                <i class="fas fa-theater-masks"></i><span>Cha: {{ character.cha }}</span>
-                            </div>
-                        </div>
-                        <div class="character-stats">
-                            <div>
-                                <i class="fas fa-shield-alt"></i><span>AC: {{ character.ac }}</span>
-                                <i class="fas fa-heart"></i><span>HP: {{ character.hp }}</span>
-                                <i class="fas fa-bolt"></i><span>Initiative: {{ character.initiative }}</span>
+                                <i class="fas fa-brain"></i><span>Int: {{ character['intelligence'] }}</span>
+                                <i class="fas fa-eye"></i><span>Wis: {{ character['wisdom'] }}</span>
+                                <i class="fas fa-theater-masks"></i><span>Cha: {{ character['charisma'] }}</span>
                             </div>
                         </div>
                         <div class="character-stats">
                             <div>
-                                <i class="fas fa-coins"></i><span>Total Gold: {{ character.total_gold }}</span>
+                                <i class="fas fa-shield-alt"></i><span>AC: {{ character['armor_class'] }}</span>
+                                <i class="fas fa-heart"></i><span>HP: {{ character['hit_points'] }}</span>
+                                <i class="fas fa-bolt"></i><span>Initiative: {{ character['initiative'] }}</span>
+                            </div>
+                        </div>
+                        <div class="character-stats">
+                            <div>
+                                <i class="fas fa-coins"></i><span>Total Gold: {{ character['total_gold'] }}</span>
                             </div>
                         </div>
                         <div class="health-bar-container">
-                            <div class="health-bar" style="width: {{ (character.hp / character.max_hp) * 100 }}%;"></div>
-                            <div class="health-text">{{ character.hp }}/{{ character.max_hp }}</div>
+                            <div class="health-bar" style="width: {{ (character['hit_points'] / character['max_hp']) * 100 }}%;"></div>
+                            <div class="health-text">{{ character['hit_points'] }}/{{ character['max_hp'] }}</div>
                         </div>
                         <div class="character-stats">
                             <div>
-                                <i class="fas fa-eye"></i><span>Passive Perception: {{ character.passive_perception }}</span>
+                                <i class="fas fa-eye"></i><span>Passive Perception: {{ character['passive_perception'] }}</span>
                             </div>
                         </div>
-                        <div class="spell-slots">
-                            {% for level, slots in character.spell_slots.items %}
+                        <h2>Spell Slots Overview</h2>
+                        {% for level, slots in character['spell_slots'].items() %}
+                            <h4>Level {{ level.split('_')[1] }} Slots</h4>
                             <div>
-                                <span>Level {{ level }}</span>
-                                {% for slot in slots %}
-                                <div class="slot {% if slot.available %}available{% else %}used{% endif %}"></div>
+                                {% for i in range(slots['remaining']) %}
+                                    <div class="spell-slot available-slot"></div>
+                                {% endfor %}
+                                {% for i in range(slots['used']) %}
+                                    <div class="spell-slot used-slot"></div>
                                 {% endfor %}
                             </div>
-                            {% endfor %}
-                        </div>
+                        {% endfor %}
+                        <hr>
+
                         <button class="inventory-button" onclick="toggleInventory(this)"
-                            data-panel-id="{{ character.id }}-card">Inventory</button>
+                            data-panel-id="{{ character_id }}-card">Inventory</button>
                         <div class="inventory-panel">
                             <div class="inventory-header">
                                 <span class="inventory-close" onclick="toggleInventory(this)"
-                                    data-panel-id="{{ character.id }}-card">&times;</span>
+                                    data-panel-id="{{ character_id }}-card">&times;</span>
                             </div>
                             <div class="inventory-content">
                                 <div class="coins">
-                                    <div class="platinum-coin"><i class="fas fa-coins"></i><span>PP: {{ character.pp }}</span><i
+                                    <div class="platinum-coin"><i class="fas fa-coins"></i><span>PP: {{ character['pp'] }}</span><i
                                             class="fas fa-hand-paper take-icon"></i></div>
-                                    <div class="gold-coin"><i class="fas fa-coins"></i><span>GP: {{ character.gp }}</span><i
-                                            class="fas fa-hand-paper take-icon"></i></div>
-                                    <div class="silver-coin"><i class="fas fa-coins"></i><span>SP: {{ character.sp }}</span><i
-                                            class="fas fa-hand-paper take-icon"></i></div>
-                                    <div class="copper-coin"><i class="fas fa-coins"></i><span>CP: {{ character.cp }}</span><i
-                                            class="fas fa-hand-paper take-icon"></i></div>
-                                </div>
-                                {% for item in character.inventory %}
-                                <div class="inventory-item">
-                                    <img src="{{ item.img }}" alt="{{ item.name }}" style="width: 20px; height: 20px;">
-                                    <span>{{ item.name }}</span>
-                                    <i class="fas fa-hand-paper take-icon"></i>
-                                    <div class="inventory-item-popup">
-                                        <h3>{{ item.name }}</h3>
-                                        <p><strong>Type:</strong> {{ item.type }}</p>
-                                        <p><strong>Damage:</strong> {{ item.damage }}</p>
-                                        <p><strong>AC Bonus:</strong> {{ item.ac_bonus }}</p>
-                                        <p><strong>Special:</strong> {{ item.special }}</p>
+                                    <div class="gold-coin"><i class="fas fa-coins"></i><span>GP: {{ character['gp'] }}</span><i
+                                            class="fas fa-hand-paper take-icon                                    </i></div>
+                                            <div class="silver-coin"><i class="fas fa-coins"></i><span>SP: {{ character['sp'] }}</span><i
+                                                    class="fas fa-hand-paper take-icon"></i></div>
+                                            <div class="copper-coin"><i class="fas fa-coins"></i><span>CP: {{ character['cp'] }}</span><i
+                                                    class="fas fa-hand-paper take-icon"></i></div>
+                                        </div>
+                                        {% for item in character['inventory'] %}
+                                        <div class="inventory-item">
+                                            <img src="{{ item.img }}" alt="{{ item.name }}" style="width: 20px; height: 20px;">
+                                            <span>{{ item.name }}</span>
+                                            <i class="fas fa-hand-paper take-icon"></i>
+                                            <div class="inventory-item-popup">
+                                                <h3>{{ item.name }}</h3>
+                                                <p><strong>Type:</strong> {{ item.type }}</p>
+                                                <p><strong>Damage:</strong> {{ item.damage }}</p>
+                                                <p><strong>AC Bonus:</strong> {{ item.ac_bonus }}</p>
+                                                <p><strong>Special:</strong> {{ item.special }}</p>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
                                     </div>
                                 </div>
-                                {% endfor %}
                             </div>
+                            <div class="banner-container"></div>
                         </div>
                     </div>
-                    <div class="banner-container"></div>
+                    {% endfor %}
                 </div>
             </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <script>
-        function toggleInventory(button) {
-            console.log('Button clicked:', button);
-            const panelId = button.getAttribute('data-panel-id');
-            const panel = document.querySelector(`#${panelId} .inventory-panel`);
-
-            console.log('Panel ID:', panelId);
-            console.log('Panel found:', panel);
-            if (panel) {
-                panel.classList.toggle('open');
-                console.log('Panel class list after toggle:', panel.classList);
-            }
-        }
-
-        function updateBackgrounds() {
-            const characterCards = document.querySelectorAll('.image-container');
-
-            characterCards.forEach(card => {
-                const characterId = card.id.replace('-card', '');
-                const hp = parseInt(card.querySelector('.health-text').textContent.split('/')[0], 10);
-                const maxHp = parseInt(card.querySelector('.health-text').textContent.split('/')[1], 10);
-                const healthPercentage = (hp / maxHp) * 100;
-
-                let backgroundImage = `/static/${characterId}/uninjured.jpg`;
-                if (healthPercentage < 30) {
-                    backgroundImage = `/static/${characterId}/badly-injured.jpg`;
-                } else if (healthPercentage < 60) {
-                    backgroundImage = `/static/${characterId}/injured.webp`;
+        
+            <script>
+                function toggleInventory(button) {
+                    console.log('Button clicked:', button);
+                    const panelId = button.getAttribute('data-panel-id');
+                    const panel = document.querySelector(`#${panelId} .inventory-panel`);
+        
+                    console.log('Panel ID:', panelId);
+                    console.log('Panel found:', panel);
+                    if (panel) {
+                        panel.classList.toggle('open');
+                        console.log('Panel class list after toggle:', panel.classList);
+                    }
                 }
-
-                card.style.backgroundImage = `url(${backgroundImage})`;
-            });
-        }
-
-        function addCondition() {
-            const playerSelect = document.getElementById('player-select');
-            const conditionSelect = document.getElementById('condition-select');
-            const playerCardId = playerSelect.value;
-            const condition = conditionSelect.value;
-
-            const playerCard = document.getElementById(playerCardId);
-            const bannerContainer = playerCard.querySelector('.banner-container');
-
-            const bannerCount = bannerContainer.querySelectorAll('.banner').length;
-            const topOffset = 0; // Adjust this value as needed for proper offset
-            const rightOffset = 10 + (bannerCount * 5); // Adjust this value as needed for proper offset
-
-            const banner = document.createElement('div');
-            banner.classList.add('banner');
-            banner.style.top = `${topOffset}px`;
-            banner.style.right = `${rightOffset}%`;
-            banner.style.paddingLeft = '30px';
-            banner.style.paddingRight = '30px';
-            banner.style.paddingTop = '55px';
-            banner.style.paddingBottom = '55px';
-
-            let conditionName = '';
-            switch (condition) {
-                case 'blinded':
-                    banner.style.setProperty('--banner-color', '#A9A9A9'); // Dark Gray
-                    conditionName = 'Blinded';
-                    break;
-                case 'charmed':
-                    banner.style.setProperty('--banner-color', '#FF69B4'); // Hot Pink
-                    conditionName = 'Charmed';
-                    break;
-                case 'deafened':
-                    banner.style.setProperty('--banner-color', '#A9A9A9'); // Dark Gray
-                    conditionName = 'Deafened';
-                    break;
-                case 'frightened':
-                    banner.style.setProperty('--banner-color', '#FFA500'); // Orange
-                    conditionName = 'Frightened';
-                    break;
-                case 'grappled':
-                    banner.style.setProperty('--banner-color', '#8B4513'); // Saddle Brown
-                    conditionName = 'Grappled';
-                    break;
-                case 'incapacitated':
-                    banner.style.setProperty('--banner-color', '#696969'); // Dim Gray
-                    conditionName = 'Incapacitated';
-                    break;
-                case 'invisible':
-                    banner.style.setProperty('--banner-color', '#808080'); // Gray
-                    conditionName = 'Invisible';
-                    break;
-                case 'paralyzed':
-                    banner.style.setProperty('--banner-color', '#00008B'); // Dark Blue
-                    conditionName = 'Paralyzed';
-                    break;
-                case 'petrified':
-                    banner.style.setProperty('--banner-color', '#708090'); // Slate Gray
-                    conditionName = 'Petrified';
-                    break;
-                case 'poisoned':
-                    banner.style.setProperty('--banner-color', '#228B22'); // Forest Green
-                    conditionName = 'Poisoned';
-                    break;
-                case 'prone':
-                    banner.style.setProperty('--banner-color', '#8B0000'); // Dark Red
-                    conditionName = 'Prone';
-                    break;
-                case 'restrained':
-                    banner.style.setProperty('--banner-color', '#B8860B'); // Dark Golden Rod
-                    conditionName = 'Restrained';
-                    break;
-                case 'stunned':
-                    banner.style.setProperty('--banner-color', '#FFD700'); // Gold
-                    conditionName = 'Stunned';
-                    break;
-                case 'unconscious':
-                    banner.style.setProperty('--banner-color', '#000000'); // Black
-                    conditionName = 'Unconscious';
-                    break;
-                case 'blessed':
-                    banner.style.setProperty('--banner-color', '#FFD700'); // Gold
-                    conditionName = 'Blessed';
-                    break;
-                case 'hasted':
-                    banner.style.setProperty('--banner-color', '#00FF00'); // Lime
-                    conditionName = 'Hasted';
-                    break;
-                case 'inspired':
-                    banner.style.setProperty('--banner-color', '#FF4500'); // Orange Red
-                    conditionName = 'Inspired';
-                    break;
-                case 'shielded':
-                    banner.style.setProperty('--banner-color', '#1E90FF'); // Dodger Blue
-                    conditionName = 'Shielded';
-                    break;
-                // Add more conditions as needed
-                default:
-                    console.log('Unknown condition:', condition);
-            }
-
-            banner.innerHTML = `<span class="vertical-text">${conditionName}</span>`;
-
-            // Add mouseover and mouseout event listeners to adjust z-index
-            banner.addEventListener('mouseover', () => {
-                banner.style.zIndex = '1000';
-            });
-
-            banner.addEventListener('mouseout', () => {
-                banner.style.zIndex = 'auto';
-            });
-
-            // Add event listeners for dragging
-            banner.addEventListener('mousedown', startDrag);
-            banner.addEventListener('touchstart', startDrag);
-
-            bannerContainer.appendChild(banner);
-        }
-
-        function startDrag(event) {
-            const banner = event.target.closest('.banner');
-            const bannerContainer = banner.parentElement;
-
-            let startX = event.clientX || event.touches[0].clientX;
-            let startY = event.clientY || event.touches[0].clientY;
-
-            let startRight = parseFloat(banner.style.right);
-            let startTop = parseFloat(banner.style.top);
-
-            function onDrag(e) {
-                let currentX = e.clientX || e.touches[0].clientX;
-                let currentY = e.clientY || e.touches[0].clientY;
-
-                let dx = currentX - startX;
-                let dy = currentY - startY;
-
-                banner.style.right = `${startRight - (dx / bannerContainer.offsetWidth) * 100}%`;
-                banner.style.top = `${startTop + dy}px`;
-            }
-
-            function onStopDrag() {
-                document.removeEventListener('mousemove', onDrag);
-                document.removeEventListener('mouseup', onStopDrag);
-                document.removeEventListener('touchmove', onDrag);
-                document.removeEventListener('touchend', onStopDrag);
-            }
-
-            document.addEventListener('mousemove', onDrag);
-            document.addEventListener('mouseup', onStopDrag);
-            document.addEventListener('touchmove', onDrag);
-            document.addEventListener('touchend', onStopDrag);
-        }
-
-        document.addEventListener('DOMContentLoaded', updateBackgrounds);
-        document.getElementById('add-condition').addEventListener('click', addCondition);
-    </script>
-</body>
-
-</html>
+        
+                function updateBackgrounds() {
+                    const characterCards = document.querySelectorAll('.image-container');
+        
+                    characterCards.forEach(card => {
+                        const characterId = card.id.replace('-card', '');
+                        const hp = parseInt(card.querySelector('.health-text').textContent.split('/')[0], 10);
+                        const maxHp = parseInt(card.querySelector('.health-text').textContent.split('/')[1], 10);
+                        const healthPercentage = (hp / maxHp) * 100;
+        
+                        let backgroundImage = `/static/images/${characterId}/uninjured.png`;
+                        if (healthPercentage < 30) {
+                            backgroundImage = `/static/images/${characterId}/neardeath.png`;
+                        } else if (healthPercentage < 60) {
+                            backgroundImage = `/static/images/${characterId}/badlyinjured.png`;
+                        } else if (healthPercentage < 90) {
+                            backgroundImage = `/static/images/${characterId}/injured.png`;
+                        }
+        
+                        card.style.backgroundImage = `url(${backgroundImage})`;
+                    });
+                }
+        
+                function addCondition() {
+                    const playerSelect = document.getElementById('player-select');
+                    const conditionSelect = document.getElementById('condition-select');
+                    const playerCardId = playerSelect.value;
+                    const condition = conditionSelect.value;
+        
+                    const playerCard = document.getElementById(playerCardId);
+                    const bannerContainer = playerCard.querySelector('.banner-container');
+        
+                    const bannerCount = bannerContainer.querySelectorAll('.banner').length;
+                    const topOffset = 0; // Adjust this value as needed for proper offset
+                    const rightOffset = 10 + (bannerCount * 5); // Adjust this value as needed for proper offset
+        
+                    const banner = document.createElement('div');
+                    banner.classList.add('banner');
+                    banner.style.top = `${topOffset}px`;
+                    banner.style.right = `${rightOffset}%`;
+                    banner.style.paddingLeft = '30px';
+                    banner.style.paddingRight = '30px';
+                    banner.style.paddingTop = '55px';
+                    banner.style.paddingBottom = '55px';
+        
+                    let conditionName = '';
+                    switch (condition) {
+                        case 'blinded':
+                            banner.style.setProperty('--banner-color', '#A9A9A9'); // Dark Gray
+                            conditionName = 'Blinded';
+                            break;
+                        case 'charmed':
+                            banner.style.setProperty('--banner-color', '#FF69B4'); // Hot Pink
+                            conditionName = 'Charmed';
+                            break;
+                        case 'deafened':
+                            banner.style.setProperty('--banner-color', '#A9A9A9'); // Dark Gray
+                            conditionName = 'Deafened';
+                            break;
+                        case 'frightened':
+                            banner.style.setProperty('--banner-color', '#FFA500'); // Orange
+                            conditionName = 'Frightened';
+                            break;
+                        case 'grappled':
+                            banner.style.setProperty('--banner-color', '#8B4513'); // Saddle Brown
+                            conditionName = 'Grappled';
+                            break;
+                        case 'incapacitated':
+                            banner.style.setProperty('--banner-color', '#696969'); // Dim Gray
+                            conditionName = 'Incapacitated';
+                            break;
+                        case 'invisible':
+                            banner.style.setProperty('--banner-color', '#808080'); // Gray
+                            conditionName = 'Invisible';
+                            break;
+                        case 'paralyzed':
+                            banner.style.setProperty('--banner-color', '#00008B'); // Dark Blue
+                            conditionName = 'Paralyzed';
+                            break;
+                        case 'petrified':
+                            banner.style.setProperty('--banner-color', '#708090'); // Slate Gray
+                            conditionName = 'Petrified';
+                            break;
+                        case 'poisoned':
+                            banner.style.setProperty('--banner-color', '#228B22'); // Forest Green
+                            conditionName = 'Poisoned';
+                            break;
+                        case 'prone':
+                            banner.style.setProperty('--banner-color', '#8B0000'); // Dark Red
+                            conditionName = 'Prone';
+                            break;
+                        case 'restrained':
+                            banner.style.setProperty('--banner-color', '#B8860B'); // Dark Golden Rod
+                            conditionName = 'Restrained';
+                            break;
+                        case 'stunned':
+                            banner.style.setProperty('--banner-color', '#FFD700'); // Gold
+                            conditionName = 'Stunned';
+                            break;
+                        case 'unconscious':
+                            banner.style.setProperty('--banner-color', '#000000'); // Black
+                            conditionName = 'Unconscious';
+                            break;
+                        case 'blessed':
+                            banner.style.setProperty('--banner-color', '#FFD700'); // Gold
+                            conditionName = 'Blessed';
+                            break;
+                        case 'hasted':
+                            banner.style.setProperty('--banner-color', '#00FF00'); // Lime
+                            conditionName = 'Hasted';
+                            break;
+                        case 'inspired':
+                            banner.style.setProperty('--banner-color', '#FF4500'); // Orange Red
+                            conditionName = 'Inspired';
+                            break;
+                        case 'shielded':
+                            banner.style.setProperty('--banner-color', '#1E90FF'); // Dodger Blue
+                            conditionName = 'Shielded';
+                            break;
+                        // Add more conditions as needed
+                        default:
+                            console.log('Unknown condition:', condition);
+                    }
+        
+                    banner.innerHTML = `<span class="vertical-text">${conditionName}</span>`;
+        
+                    // Add mouseover and mouseout event listeners to adjust z-index
+                    banner.addEventListener('mouseover', () => {
+                        banner.style.zIndex = '1000';
+                    });
+        
+                    banner.addEventListener('mouseout', () => {
+                        banner.style.zIndex = 'auto';
+                    });
+        
+                    // Add event listeners for dragging
+                    banner.addEventListener('mousedown', startDrag);
+                    banner.addEventListener('touchstart', startDrag);
+        
+                    bannerContainer.appendChild(banner);
+                }
+        
+                function startDrag(event) {
+                    const banner = event.target.closest('.banner');
+                    const bannerContainer = banner.parentElement;
+        
+                    let startX = event.clientX || event.touches[0].clientX;
+                    let startY = event.clientY || event.touches[0].clientY;
+        
+                    let startRight = parseFloat(banner.style.right);
+                    let startTop = parseFloat(banner.style.top);
+        
+                    function onDrag(e) {
+                        let currentX = e.clientX || e.touches[0].clientX;
+                        let currentY = e.clientY || e.touches[0].clientY;
+        
+                        let dx = currentX - startX;
+                        let dy = currentY - startY;
+        
+                        banner.style.right = `${startRight - (dx / bannerContainer.offsetWidth) * 100}%`;
+                        banner.style.top = `${startTop + dy}px`;
+                    }
+        
+                    function onStopDrag() {
+                        document.removeEventListener('mousemove', onDrag);
+                        document.removeEventListener('mouseup', onStopDrag);
+                        document.removeEventListener('touchmove', onDrag);
+                        document.removeEventListener('touchend', onStopDrag);
+                    }
+        
+                    document.addEventListener('mousemove', onDrag);
+                    document.addEventListener('mouseup', onStopDrag);
+                    document.addEventListener('touchmove', onDrag);
+                    document.addEventListener('touchend', onStopDrag);
+                }
+        
+                document.addEventListener('DOMContentLoaded', updateBackgrounds);
+                document.getElementById('add-condition').addEventListener('click', addCondition);
+            </script>
+        </body>
+        
+        </html>
+        

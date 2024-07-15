@@ -5,20 +5,32 @@ import time
 import os
 import json
 from openai import OpenAI
-from dotenv import load_dotenv
+import psycopg2
+from psycopg2 import extras
+#from dotenv import load_dotenv
 
-load_dotenv()
+#oad_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
-client = OpenAI(api_key=openai_api_key)
+#client = OpenAI(api_key=openai_api_key)
 
 # Neo4j connection
 uri = 'neo4j+s://b29956d6.databases.neo4j.io'
 user = 'neo4j'
 password = '0kc1APDksb8vIkSWOraGix4fulXDzr6d_81Uw5JLDbs'
 driver = GraphDatabase.driver(uri, auth=(user, password))
+
+def db_connection():
+    conn = psycopg2.connect(
+        dbname='rpgdb',
+        user='postgres',
+        password='.',
+        host='10.0.0.58',
+        port='5432'
+    )
+    return conn
 
 # Dummy player data
 players_list = [
@@ -52,38 +64,6 @@ def read_json():
 def write_json(data):
     with open(JSON_FILE, 'w') as file:
         json.dump(data, file, indent=4)
-
-def generate_detailed_prompt(data):
-    chat_input = [
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": f"Create a detailed description for an image generation prompt based on the following hero details. Do not use the word 'character', use 'hero' instead: {json.dumps(data)}"}
-    ]
-
-    try:
-        chat_response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=chat_input
-        )
-        detailed_prompt = chat_response.choices[0].message.content
-        return detailed_prompt
-    except Exception as e:
-        print(f"Error generating detailed prompt: {e}")
-        return None
-
-def generate_image(prompt):
-    print(f"Generating image with prompt: {prompt}")
-    try:
-        response = client.images.generate(
-            model="dall-e-3",
-            prompt=prompt,
-            size="1024x1024",
-            n=1
-        )
-        image_url = response.data[0].url
-        return image_url
-    except Exception as e:
-        print(f"Error generating image: {e}")
-        return None
 
 def get_characters_for_player(username):
     with driver.session() as session:
@@ -300,21 +280,21 @@ def get_monster_details(monster_name):
         }
         return response
 
-@app.route('/generate_prompt', methods=['POST'])
-def generate_prompt():
-    data = request.json
-    print("Generating prompt with data:", data)
+#@app.route('/generate_prompt', methods=['POST'])
+#def generate_prompt():
+    #data = request.json
+    #print("Generating prompt with data:", data)
     # Generate detailed prompt
-    prompt = generate_detailed_prompt(data)
-    if not prompt:
-        return jsonify({'error': 'Failed to generate prompt'}), 500
+    #prompt = generate_detailed_prompt(data)
+    #if not prompt:
+    #    return jsonify({'error': 'Failed to generate prompt'}), 500
 
     # Generate image
-    image_url = generate_image(prompt)
-    if not image_url:
-        return jsonify({'error': 'Failed to generate image'}), 500
+    #image_url = generate_image(prompt)
+    #if not image_url:
+    #    return jsonify({'error': 'Failed to generate image'}), 500
     
-    return jsonify({'images': [image_url]})
+    #return jsonify({'images': [image_url]})
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -411,6 +391,30 @@ def handle_update_health(data):
 def home():
     return render_template('index.html')
 
+def get_campaigns():
+    conn = db_connection()
+    cur = conn.cursor()
+    query = """SELECT * FROM public.campaigns WHERE player_id = 1 ORDER BY id ASC"""
+    cur.execute(query)
+    campaigns = cur.fetchall()
+    cur.close()
+    conn.close()
+    return campaigns
+
+@app.route('/campaigns')
+def campaigns():
+    campaigns_data = get_campaigns()
+    campaigns = []
+    for campaign in campaigns_data:
+        campaigns.append({
+            'id': campaign[0],  # assuming 'id' is the first column
+            'name': campaign[1],  # assuming 'name' is the second column
+            'tagline': campaign[2],  # assuming 'tagline' is the third column
+            'system': campaign[3],  # assuming 'system' is the fourth column
+            'image': campaign[4]  # assuming 'image' is the fifth column
+        })
+    return render_template('campaigns.html', campaign_id=campaign[0])
+
 @app.route('/players/<username>')
 def players_main(username):
     characters = get_characters_for_player(username)
@@ -432,8 +436,8 @@ def login():
                 print(f"Redirecting to DM dashboard for {username}")  # Debugging print
                 return redirect(url_for('dm_dashboard', username=username))
             if username == 'dm2':
-                print(f"Redirecting to DM2 dashboard for {username}")  # Debugging print
-                return redirect(url_for('dm_dashboard2', username=username))
+                print(f"Redirecting to Campaigns for {username}")  # Debugging print
+                return redirect(url_for('campaigns', username=username))
             print(f"Redirecting to player dashboard for {username}")  # Debugging print
             return redirect(url_for('player_dashboard', username=username))
         print("Username not found in players list")  # Debugging print
@@ -542,12 +546,206 @@ def dm_dashboard(username):
     conditions=get_conditions()
     return render_template('dm_dashboard.html', monsters=monsters, characters=characters,conditions=conditions)
 
-@app.route('/dm_dashboard2/<username>', methods=['GET', 'POST'])
-def dm_dashboard2(username):
+@app.route('/dm_dashboard2/<campaign_id>', methods=['GET', 'POST'])
+def dm_dashboard2(campaign_id):
     monsters = get_five_monsters()
-    characters = get_characters_for_dm()
-    conditions=get_conditions()
-    return render_template('dm_dashboard2.html', monsters=monsters, characters=characters,conditions=conditions)
+    conditions = get_conditions()
+    characters = get_characters(campaign_id)
+    return render_template('dm_dashboard2.html', monsters=monsters, conditions=conditions, characters=characters)
+
+def get_characters(campaign_id):
+    conn = db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    query = """
+    WITH expanded_slots AS (
+        SELECT
+            ch.id AS character_id,
+            r.name AS race_name,
+            cl.name AS class_name,
+            ch.level,
+            ch.background,
+            ch.alignment,
+            ch.hit_points,
+            ch.hit_dice,
+            ch.armor_class,
+            ch.initiative,
+            ch.speed,
+            ch.passive_perception,
+            cs.strength,
+            cs.dexterity,
+            cs.constitution,
+            cs.intelligence,
+            cs.wisdom,
+            cs.charisma,
+            ss.cantrips_known,
+            ss.spells_known,
+            slot.idx,
+            slot.value::int AS slot_value
+        FROM
+            public.characters AS ch
+        LEFT JOIN
+            races AS r ON r.id = ch.race_id
+        LEFT JOIN
+            classes AS cl ON ch.class_id = cl.id
+        LEFT JOIN
+            spell_slots AS ss ON ss.class_id = ch.class_id 
+                                AND ch.level = ss.level 
+                                AND (ch.subclass_id = ss.subclass_id OR ss.subclass_id IS NULL)
+        LEFT JOIN
+            LATERAL jsonb_array_elements_text(ss.slots::jsonb) WITH ORDINALITY AS slot(value, idx) ON TRUE
+        LEFT JOIN
+            character_stats AS cs ON cs.character_id = ch.id
+        WHERE
+            ch.campaign_id = %s
+    ),
+    used_slots AS (
+        SELECT
+            ch.id AS character_id,
+            su.spell_slot_level,
+            COUNT(su.spell_slot_level) AS used_count
+        FROM
+            public.characters AS ch
+        LEFT JOIN
+            spell_slots_usage AS su ON ch.id = su.character_id
+        WHERE
+            ch.campaign_id = %s
+        GROUP BY
+            ch.id, su.spell_slot_level
+    ),
+    pivot_used_slots AS (
+        SELECT
+            character_id,
+            MAX(CASE WHEN spell_slot_level = 1 THEN used_count ELSE 0 END) AS level_1_slots_used,
+            MAX(CASE WHEN spell_slot_level = 2 THEN used_count ELSE 0 END) AS level_2_slots_used,
+            MAX(CASE WHEN spell_slot_level = 3 THEN used_count ELSE 0 END) AS level_3_slots_used,
+            MAX(CASE WHEN spell_slot_level = 4 THEN used_count ELSE 0 END) AS level_4_slots_used,
+            MAX(CASE WHEN spell_slot_level = 5 THEN used_count ELSE 0 END) AS level_5_slots_used,
+            MAX(CASE WHEN spell_slot_level = 6 THEN used_count ELSE 0 END) AS level_6_slots_used,
+            MAX(CASE WHEN spell_slot_level = 7 THEN used_count ELSE 0 END) AS level_7_slots_used,
+            MAX(CASE WHEN spell_slot_level = 8 THEN used_count ELSE 0 END) AS level_8_slots_used,
+            MAX(CASE WHEN spell_slot_level = 9 THEN used_count ELSE 0 END) AS level_9_slots_used
+        FROM
+            used_slots
+        GROUP BY
+            character_id
+    )
+    SELECT
+        es.character_id,
+        es.race_name,
+        es.class_name,
+        es.level,
+        es.background,
+        es.alignment,
+        es.hit_points,
+        es.hit_dice,
+        es.armor_class,
+        es.initiative,
+        es.speed,
+        es.passive_perception,
+        es.strength,
+        es.dexterity,
+        es.constitution,
+        es.intelligence,
+        es.wisdom,
+        es.charisma,
+        es.spell_slot_level,
+        es.cantrips_known,
+        es.spells_known,
+        MAX(CASE WHEN es.idx = 1 THEN es.slot_value ELSE 0 END) AS level_1_slots,
+        MAX(CASE WHEN es.idx = 2 THEN es.slot_value ELSE 0 END) AS level_2_slots,
+        MAX(CASE WHEN es.idx = 3 THEN es.slot_value ELSE 0 END) AS level_3_slots,
+        MAX(CASE WHEN es.idx = 4 THEN es.slot_value ELSE 0 END) AS level_4_slots,
+        MAX(CASE WHEN es.idx = 5 THEN es.slot_value ELSE 0 END) AS level_5_slots,
+        MAX(CASE WHEN es.idx = 6 THEN es.slot_value ELSE 0 END) AS level_6_slots,
+        MAX(CASE WHEN es.idx = 7 THEN es.slot_value ELSE 0 END) AS level_7_slots,
+        MAX(CASE WHEN es.idx = 8 THEN es.slot_value ELSE 0 END) AS level_8_slots,
+        MAX(CASE WHEN es.idx = 9 THEN es.slot_value ELSE 0 END) AS level_9_slots,
+        COALESCE(pus.level_1_slots_used, 0) AS level_1_slots_used,
+        COALESCE(pus.level_2_slots_used, 0) AS level_2_slots_used,
+        COALESCE(pus.level_3_slots_used, 0) AS level_3_slots_used,
+        COALESCE(pus.level_4_slots_used, 0) AS level_4_slots_used,
+        COALESCE(pus.level_5_slots_used, 0) AS level_5_slots_used,
+        COALESCE(pus.level_6_slots_used, 0) AS level_6_slots_used,
+        COALESCE(pus.level_7_slots_used, 0) AS level_7_slots_used,
+        COALESCE(pus.level_8_slots_used, 0) AS level_8_slots_used,
+        COALESCE(pus.level_9_slots_used, 0) AS level_9_slots_used,
+        (MAX(CASE WHEN es.idx = 1 THEN es.slot_value ELSE 0 END) - COALESCE(pus.level_1_slots_used, 0)) AS level_1_slots_remaining,
+        (MAX(CASE WHEN es.idx = 2 THEN es.slot_value ELSE 0 END) - COALESCE(pus.level_2_slots_used, 0)) AS level_2_slots_remaining,
+        (MAX(CASE WHEN es.idx = 3 THEN es.slot_value ELSE 0 END) - COALESCE(pus.level_3_slots_used, 0)) AS level_3_slots_remaining,
+        (MAX(CASE WHEN es.idx = 4 THEN es.slot_value ELSE 0 END) - COALESCE(pus.level_4_slots_used, 0)) AS level_4_slots_remaining,
+        (MAX(CASE WHEN es.idx = 5 THEN es.slot_value ELSE 0 END) - COALESCE(pus.level_5_slots_used, 0)) AS level_5_slots_remaining,
+        (MAX(CASE WHEN es.idx = 6 THEN es.slot_value ELSE 0 END) - COALESCE(pus.level_6_slots_used, 0)) AS level_6_slots_remaining,
+        (MAX(CASE WHEN es.idx = 7 THEN es.slot_value ELSE 0 END) - COALESCE(pus.level_7_slots_used, 0)) AS level_7_slots_remaining,
+        (MAX(CASE WHEN es.idx = 8 THEN es.slot_value ELSE 0 END) - COALESCE(pus.level_8_slots_used, 0)) AS level_8_slots_remaining,
+        (MAX(CASE WHEN es.idx = 9 THEN es.slot_value ELSE 0 END) - COALESCE(pus.level_9_slots_used, 0)) AS level_9_slots_remaining
+    FROM
+        expanded_slots AS es
+    LEFT JOIN
+        pivot_used_slots AS pus ON es.character_id = pus.character_id
+    GROUP BY
+        es.character_id, es.race_name, es.class_name, es.level, es.background, es.alignment, es.hit_points, es.hit_dice, es.armor_class, es.iniative, es.speed, es.passive_perception, es.strength, es.dexterity, es.constitution, es.intelligence, es.wisdom, es.charisma, es.spell_slot_level, es.cantrips_known, es.spells_known, 
+        pus.level_1_slots_used, pus.level_2_slots_used, pus.level_3_slots_used, pus.level_4_slots_used, 
+        pus.level_5_slots_used, pus.level_6_slots_used, pus.level_7_slots_used, pus.level_8_slots_used, pus.level_9_slots_used
+    ORDER BY
+        es.character_id, es.level;
+    """
+
+    cur.execute(query, (campaign_id, campaign_id))
+    results = cur.fetchall()
+    conn.close()
+
+    # Process results into a structured format
+    characters = {}
+    for row in results:
+        character_id = row['character_id']
+        if character_id not in characters:
+            characters[character_id] = {
+                'race_name': row['race_name'],
+                'class_name': row['class_name'],
+                'level': row['level'],
+                'background': row['background'],
+                'alignment': row['alignment'],
+                'hit_points': row['hit_points'],
+                'hit_dice': row['hit_dice'],
+                'armor_class': row['armor_class'],
+                'initiative': row['iniative'],
+                'speed': row['speed'],
+                'passive_perception': row['passive_perception'],
+                'strength': row['strength'],
+                'dexterity': row['dexterity'],
+                'constitution': row['constitution'],
+                'intelligence': row['intelligence'],
+                'wisdom': row['wisdom'],
+                'charisma': row['charisma'],
+                'cantrips_known': row['cantrips_known'],
+                'spells_known': row['spells_known'],
+                'spell_slots': {
+                    'level_1': {'total': row['level_1_slots'], 'used': row['level_1_slots_used'], 'remaining': row['level_1_slots_remaining']},
+                    'level_2': {'total': row['level_2_slots'], 'used': row['level_2_slots_used'], 'remaining': row['level_2_slots_remaining']},
+                    'level_3': {'total': row['level_3_slots'], 'used': row['level_3_slots_used'], 'remaining': row['level_3_slots_remaining']},
+                    'level_4': {'total': row['level_4_slots'], 'used': row['level_4_slots_used'], 'remaining': row['level_4_slots_remaining']},
+                    'level_5': {'total': row['level_5_slots'], 'used': row['level_5_slots_used'], 'remaining': row['level_5_slots_remaining']},
+                    'level_6': {'total': row['level_6_slots'], 'used': row['level_6_slots_used'], 'remaining': row['level_6_slots_remaining']},
+                    'level_7': {'total': row['level_7_slots'], 'used': row['level_7_slots_used'], 'remaining': row['level_7_slots_remaining']},
+                    'level_8': {'total': row['level_8_slots'], 'used': row['level_8_slots_used'], 'remaining': row['level_8_slots_remaining']},
+                    'level_9': {'total': row['level_9_slots'], 'used': row['level_9_slots_used'], 'remaining': row['level_9_slots_remaining']}
+                }
+            }
+        else:
+            characters[character_id]['spell_slots'].update({
+                'level_1': {'total': row['level_1_slots'], 'used': row['level_1_slots_used'], 'remaining': row['level_1_slots_remaining']},
+                'level_2': {'total': row['level_2_slots'], 'used': row['level_2_slots_used'], 'remaining': row['level_2_slots_remaining']},
+                'level_3': {'total': row['level_3_slots'], 'used': row['level_3_slots_used'], 'remaining': row['level_3_slots_remaining']},
+                'level_4': {'total': row['level_4_slots'], 'used': row['level_4_slots_used'], 'remaining': row['level_4_slots_remaining']},
+                'level_5': {'total': row['level_5_slots'], 'used': row['level_5_slots_used'], 'remaining': row['level_5_slots_remaining']},
+                'level_6': {'total': row['level_6_slots'], 'used': row['level_6_slots_used'], 'remaining': row['level_6_slots_remaining']},
+                'level_7': {'total': row['level_7_slots'], 'used': row['level_7_slots_used'], 'remaining': row['level_7_slots_remaining']},
+                'level_8': {'total': row['level_8_slots'], 'used': row['level_8_slots_used'], 'remaining': row['level_8_slots_remaining']},
+                'level_9': {'total': row['level_9_slots'], 'used': row['level_9_slots_used'], 'remaining': row['level_9_slots_remaining']}
+            })
+
+    return characters
 
 
 @app.route('/character_dashboard/<int:character_id>')

@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Character Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background-color: #f0f0f0;
+    overflow-y: auto;
+}
+
+.image-container {
+    position: relative;
+    display: inline-block;
+    margin: 10px;
+    width: 350px;
+    height: 450px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.character-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    text-align: left;
+    color: black;
+    background-color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.character-card .header {
+    margin-bottom: 10px;
+}
+
+.character-card .header h1 {
+    color: red;
+    margin: 0;
+}
+
+.character-card .header h3 {
+    margin: 5px 0 0 0;
+}
+
+.character-card .stats,
+.character-card .group {
+    margin-bottom: 10px;
+}
+
+.character-card .stats div,
+.character-card .group div {
+    display: flex;
+    align-items: center;
+}
+
+.character-card .stats div i,
+.character-card .group div i {
+    margin-right: 5px;
+    width: 20px;
+    height: 20px;
+}
+
+.spell-slot {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin: 2px;
+    border: 1px solid black;
+}
+
+.available-slot {
+    background-color: black;
+}
+
+.used-slot {
+    background-color: red;
+}
+
+.inventory-content {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: 100px;
+    gap: 10px;
+}
+
+.inventory-item-card,
+.normal-item-card,
+.common-item-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    color: white;
+    padding: 10px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.inventory-item-card {
+    grid-column: span 2;
+    grid-row: span 3;
+}
+
+.normal-item-card {
+    grid-column: span 2;
+    grid-row: span 2;
+}
+
+.common-item-card {
+    grid-column: span 2;
+    grid-row: span 1;
+}
+
+.inventory-item-card img,
+.normal-item-card img,
+.common-item-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.inventory-item-card h3,
+.normal-item-card h3,
+.common-item-card h3,
+.inventory-item-card p,
+.normal-item-card p,
+.common-item-card p {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    padding: 5px 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.inventory-button,
+.details-button {
+    background: none;
+    border: none;
+    color: black;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.details-button {
+    margin-left: auto;
+}
+
+
+.inventory-panel,
+.details-panel {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 70%;
+    height: 70%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(139, 69, 19, 0.95);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 1000;
+    overflow: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.inventory-panel.open,
+.details-panel.open {
+    display: block;
+}
+
+.inventory-close {
+    display: block;
+    margin: 20px auto 0;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    background-color: #c0392b;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+            <div id="1-card" class="image-container" style="background-image: url('./images/druid.webp');">
+                <div class="character-card">
+                    <div class="header">
+                        <h1>Elrond</h1>
+                        <h3>Elf Wizard</h3>
+                    </div>
+                    <div class="stats">
+                        <i class="fas fa-dumbbell"></i> Str: 10
+                        <i class="fas fa-running"></i> Dex: 14
+                        <i class="fas fa-heartbeat"></i> Con: 12
+                        <i class="fas fa-brain"></i> Int: 18
+                        <i class="fas fa-eye"></i> Wis: 13
+                        <i class="fas fa-theater-masks"></i> Cha: 11
+                        <i class="fas fa-balance-scale"></i> Alignment: Lawful Good
+                        <i class="fas fa-shield-alt"></i> AC: 15
+                        <i class="fas fa-heart"></i> Hit Dice: 5d6
+                        <i class="fas fa-tachometer-alt"></i> Speed: 30
+                        <i class="fas fa-eye"></i> Passive Perception: 14
+                    </div>
+                    <h2>Spell Slots Overview</h2>
+                    <label>Level 1 Slots</label>
+                    <div>
+                        <div class="spell-slot available-slot"></div>
+                        <div class="spell-slot available-slot"></div>
+                        <div class="spell-slot available-slot"></div>
+                        <div class="spell-slot used-slot"></div>
+                    </div>
+                    <label>Level 2 Slots</label>
+                    <div>
+                        <div class="spell-slot available-slot"></div>
+                        <div class="spell-slot available-slot"></div>
+                        <div class="spell-slot available-slot"></div>
+                    </div>
+                    <label>Level 3 Slots</label>
+                    <div>
+                        <div class="spell-slot available-slot"></div>
+                        <div class="spell-slot available-slot"></div>
+                    </div>
+                    <button class="inventory-button" onclick="toggleInventory(this)" data-panel-id="1">Inventory</button>
+                    <button class="details-button" onclick="toggleDetails(this)" data-panel-id="1">Details</button>
+                    <div class="inventory-panel" data-id="1">
+                        <div class="inventory-content">
+                            <div class="inventory-item-card">
+                                <img src="./images/magic-staff.webp" alt="Magic Staff">
+                                <h3>Staff of the Magi</h3>
+                                <p>A powerful magical staff.</p>
+                            </div>
+                            <div class="inventory-item-card">
+                                <img src="./images/cloak.jpeg" alt="Cloak of Invisibility">
+                                <h3>Cloak of Invisibility</h3>
+                                <p>A cloak that grants invisibility.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <img src="./images/iron-sword.jpeg" alt="Magic Staff">
+                                <h3>Iron Sword</h3>
+                                <p>A sturdy iron sword.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                                <h3>Leather Armor</h3>
+                                <p>A set of tough leather armor.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <h3>Tough Rope Sword</h3>
+                                <p>A sturdy iron sword.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                                <h3>Leather Armor</h3>
+                                <p>A set of tough leather armor.</p>
+                            </div>                            
+                            <div class="common-item-card">
+                                <img src="./images/health-potion.jpeg" alt="Magic Staff">
+                                <span>Health Potion</span>
+                                <p>Restores 10 HP.</p>
+                            </div>
+                            <div class="common-item-card">
+                                <img src="./images/mana-potion.jpeg" alt="Magic Staff">
+                                <span>Mana Potion</span>
+                                <p>Restores 10 MP.</p>
+                            </div>
+                        </div>
+                        <button class="inventory-close" onclick="toggleInventory(this)" data-panel-id="1">Close</button>
+                    </div>
+                    <div class="details-panel" data-id="1">
+                        <h1>Details Overview</h1>
+                        <label for="">Super important details</label>
+                        <button class="details-close" onclick="toggleDetails(this)" data-panel-id="1">Close</button>
+                    </div>
+                </div>
+            </div>
+        <div id="2-card" class="image-container" style="background-image: url('./images/wizard.webp');">
+            <div class="character-card">
+                <div class="header">
+                    <h1>Elrond</h1>
+                    <h3>Elf Wizard</h3>
+                </div>
+                <div class="stats">
+                    <div><i class="fas fa-dumbbell"></i>Str: 10</div>
+                    <div><i class="fas fa-running"></i>Dex: 14</div>
+                    <div><i class="fas fa-heartbeat"></i>Con: 12</div>
+                    <div><i class="fas fa-brain"></i>Int: 18</div>
+                    <div><i class="fas fa-eye"></i>Wis: 13</div>
+                    <div><i class="fas fa-theater-masks"></i>Cha: 11</div>
+                </div>
+                <div class="group">
+                    <div><i class="fas fa-balance-scale"></i>Alignment: Lawful Good</div>
+                    <div><i class="fas fa-shield-alt"></i>AC: 15</div>
+                    <div><i class="fas fa-heart"></i>Hit Dice: 5d6</div>
+                    <div><i class="fas fa-tachometer-alt"></i>Speed: 30</div>
+                    <div><i class="fas fa-eye"></i>Passive Perception: 14</div>
+                </div>
+                <h2>Spell Slots Overview</h2>
+                <label>Level 1 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot used-slot"></div>
+                </div>
+                <label>Level 2 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                </div>
+                <label>Level 3 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                </div>
+                <button class="inventory-button" onclick="toggleInventory(this)" data-panel-id="2">Inventory</button>
+                <div class="inventory-panel" data-id="2">
+                    <div class="inventory-content">
+                        <div class="inventory-item-card">
+                            <h3>Inventory</h3>
+                            <div class="inventory-item-card">
+                                <img src="images/magic-staff.png" alt="Magic Staff">
+                                <h3>Staff of the Magi</h3>
+                                <p>A powerful magical staff.</p>
+                            </div>
+                            <div class="inventory-item-card">
+                                <img src="images/cloak.png" alt="Cloak of Invisibility">
+                                <h3>Cloak of Invisibility</h3>
+                                <p>A cloak that grants invisibility.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <h3>Iron Sword</h3>
+                                <p>A sturdy iron sword.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <h3>Leather Armor</h3>
+                                <p>A set of tough leather armor.</p>
+                            </div>
+                            <div class="common-item-card">
+                                <span>Health Potion</span>
+                                <p>Restores 10 HP.</p>
+                            </div>
+                            <div class="common-item-card">
+                                <span>Mana Potion</span>
+                                <p>Restores 10 MP.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="inventory-close" onclick="toggleInventory(this)" data-panel-id="2">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="3-card" class="image-container" style="background-image: url('./images/paladin.webp');">
+            <div class="character-card">
+                <div class="header">
+                    <h1>Elrond</h1>
+                    <h3>Elf Wizard</h3>
+                </div>
+                <div class="stats">
+                    <div><i class="fas fa-dumbbell"></i>Str: 10</div>
+                    <div><i class="fas fa-running"></i>Dex: 14</div>
+                    <div><i class="fas fa-heartbeat"></i>Con: 12</div>
+                    <div><i class="fas fa-brain"></i>Int: 18</div>
+                    <div><i class="fas fa-eye"></i>Wis: 13</div>
+                    <div><i class="fas fa-theater-masks"></i>Cha: 11</div>
+                </div>
+                <div class="group">
+                    <div><i class="fas fa-balance-scale"></i>Alignment: Lawful Good</div>
+                    <div><i class="fas fa-shield-alt"></i>AC: 15</div>
+                    <div><i class="fas fa-heart"></i>Hit Dice: 5d6</div>
+                    <div><i class="fas fa-tachometer-alt"></i>Speed: 30</div>
+                    <div><i class="fas fa-eye"></i>Passive Perception: 14</div>
+                </div>
+                <h2>Spell Slots Overview</h2>
+                <label>Level 1 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot used-slot"></div>
+                </div>
+                <label>Level 2 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                </div>
+                <label>Level 3 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                </div>
+                <button class="inventory-button" onclick="toggleInventory(this)" data-panel-id="3">Inventory</button>
+                <div class="inventory-panel" data-id="3">
+                    <div class="inventory-content">
+                        <div class="inventory-item-card">
+                            <h3>Inventory</h3>
+                            <div class="inventory-item-card">
+                                <img src="images/magic-staff.png" alt="Magic Staff">
+                                <h3>Staff of the Magi</h3>
+                                <p>A powerful magical staff.</p>
+                            </div>
+                            <div class="inventory-item-card">
+                                <img src="images/cloak.png" alt="Cloak of Invisibility">
+                                <h3>Cloak of Invisibility</h3>
+                                <p>A cloak that grants invisibility.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <h3>Iron Sword</h3>
+                                <p>A sturdy iron sword.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <h3>Leather Armor</h3>
+                                <p>A set of tough leather armor.</p>
+                            </div>
+                            <div class="common-item-card">
+                                <span>Health Potion</span>
+                                <p>Restores 10 HP.</p>
+                            </div>
+                            <div class="common-item-card">
+                                <span>Mana Potion</span>
+                                <p>Restores 10 MP.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="inventory-close" onclick="toggleInventory(this)" data-panel-id="3">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="4-card" class="image-container" style="background-image: url('./images/druid.webp');">
+            <div class="character-card">
+                <div class="header">
+                    <h1>Elrond</h1>
+                    <h3>Elf Wizard</h3>
+                </div>
+                <div class="stats">
+                    <div><i fa-dumbbell"></i>Str: 10</div>
+                    <div><i class="fas fa-running"></i>Dex: 14</div>
+                    <div><i class="fas fa-heartbeat"></i>Con: 12</div>
+                    <div><i class="fas fa-brain"></i>Int: 18</div>
+                    <div><i class="fas fa-eye"></i>Wis: 13</div>
+                    <div><i class="fas fa-theater-masks"></i>Cha: 11</div>
+                </div>
+                <div class="group">
+                    <div><i class="fas fa-balance-scale"></i>Alignment: Lawful Good</div>
+                    <div><i class="fas fa-shield-alt"></i>AC: 15</div>
+                    <div><i class="fas fa-heart"></i>Hit Dice: 5d6</div>
+                    <div><i class="fas fa-tachometer-alt"></i>Speed: 30</div>
+                    <div><i class="fas fa-eye"></i>Passive Perception: 14</div>
+                </div>
+                <h2>Spell Slots Overview</h2>
+                <label>Level 1 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot used-slot"></div>
+                </div>
+                <label>Level 2 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                </div>
+                <label>Level 3 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                </div>
+                <button class="inventory-button" onclick="toggleInventory(this)" data-panel-id="4">Inventory</button>
+                <div class="inventory-panel" data-id="4">
+                    <div class="inventory-content">
+                        <div class="inventory-item-card">
+                            <h3>Inventory</h3>
+                            <div class="inventory-item-card">
+                                <img src="images/magic-staff.png" alt="Magic Staff">
+                                <h3>Staff of the Magi</h3>
+                                <p>A powerful magical staff.</p>
+                            </div>
+                            <div class="inventory-item-card">
+                                <img src="images/cloak.png" alt="Cloak of Invisibility">
+                                <h3>Cloak of Invisibility</h3>
+                                <p>A cloak that grants invisibility.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <h3>Iron Sword</h3>
+                                <p>A sturdy iron sword.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <h3>Leather Armor</h3>
+                                <p>A set of tough leather armor.</p>
+                            </div>
+                            <div class="common-item-card">
+                                <span>Health Potion</span>
+                                <p>Restores 10 HP.</p>
+                            </div>
+                            <div class="common-item-card">
+                                <span>Mana Potion</span>
+                                <p>Restores 10 MP.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="inventory-close" onclick="toggleInventory(this)" data-panel-id="4">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="5-card" class="image-container" style="background-image: url('./images/wizard.webp');">
+            <div class="character-card">
+                <div class="header">
+                    <h1>Elrond</h1>
+                    <h3>Elf Wizard</h3>
+                </div>
+                <div class="stats">
+                    <div><i class="fas fa-dumbbell"></i>Str: 10</div>
+                    <div><i class="fas fa-running"></i>Dex: 14</div>
+                    <div><i class="fas fa-heartbeat"></i>Con: 12</div>
+                    <div><i class="fas fa-brain"></i>Int: 18</div>
+                    <div><i class="fas fa-eye"></i>Wis: 13</div>
+                    <div><i class="fas fa-theater-masks"></i>Cha: 11</div>
+                </div>
+                <div class="group">
+                    <div><i class="fas fa-balance-scale"></i>Alignment: Lawful Good</div>
+                    <div><i class="fas fa-shield-alt"></i>AC: 15</div>
+                    <div><i class="fas fa-heart"></i>Hit Dice: 5d6</div>
+                    <div><i class="fas fa-tachometer-alt"></i>Speed: 30</div>
+                    <div><i class="fas fa-eye"></i>Passive Perception: 14</div>
+                </div>
+                <h2>Spell Slots Overview</h2>
+                <label>Level 1 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot used-slot"></div>
+                </div>
+                <label>Level 2 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                </div>
+                <label>Level 3 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                </div>
+                <button class="inventory-button" onclick="toggleInventory(this)" data-panel-id="5">Inventory</button>
+                <div class="inventory-panel" data-id="5">
+                    <div class="inventory-content">
+                        <div class="inventory-item-card">
+                            <h3>Inventory</h3>
+                            <div class="inventory-item-card">
+                                <img src="images/magic-staff.png" alt="Magic Staff">
+                                <h3>Staff of the Magi</h3>
+                                <p>A powerful magical staff.</p>
+                            </div>
+                            <div class="inventory-item-card">
+                                <img src="images/cloak.png" alt="Cloak of Invisibility">
+                                <h3>Cloak of Invisibility</h3>
+                                <p>A cloak that grants invisibility.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <h3>Iron Sword</h3>
+                                <p>A sturdy iron sword.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <h3>Leather Armor</h3>
+                                <p>A set of tough leather armor.</p>
+                            </div>
+                            <div class="common-item-card">
+                                <span>Health Potion</span>
+                                <p>Restores 10 HP.</p>
+                            </div>
+                            <div class="common-item-card">
+                                <span>Mana Potion</span>
+                                <p>Restores 10 MP.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="inventory-close" onclick="toggleInventory(this)" data-panel-id="5">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="6-card" class="image-container" style="background-image: url('./images/paladin.webp');">
+            <div class="character-card">
+                <div class="header">
+                    <h1>Elrond</h1>
+                    <h3>Elf Wizard</h3>
+                </div>
+                <div class="stats">
+                    <div><i class="fas fa-dumbbell"></i>Str: 10</div>
+                    <div><i class="fas fa-running"></i>Dex: 14</div>
+                    <div><i class="fas fa-heartbeat"></i>Con: 12</div>
+                    <div><i class="fas fa-brain"></i>Int: 18</div>
+                    <div><i class="fas fa-eye"></i>Wis: 13</div>
+                    <div><i class="fas fa-theater-masks"></i>Cha: 11</div>
+                </div>
+                <div class="group">
+                    <div><i class="fas fa-balance-scale"></i>Alignment: Lawful Good</div>
+                    <div><i class="fas fa-shield-alt"></i>AC: 15</div>
+                    <div><i class="fas fa-heart"></i>Hit Dice: 5d6</div>
+                    <div><i class="fas fa-tachometer-alt"></i>Speed: 30</div>
+                    <div><i class="fas fa-eye"></i>Passive Perception: 14</div>
+                </div>
+                <h2>Spell Slots Overview</h2>
+                <label>Level 1 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot used-slot"></div>
+                </div>
+                <label>Level 2 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                </div>
+                <label>Level 3 Slots</label>
+                <div>
+                    <div class="spell-slot available-slot"></div>
+                    <div class="spell-slot available-slot"></div>
+                </div>
+                <button class="inventory-button" onclick="toggleInventory(this)" data-panel-id="6">Inventory</button>
+                <div class="inventory-panel" data-id="6">
+                    <div class="inventory-content">
+                        <div class="inventory-item-card">
+                            <h3>Inventory</h3>
+                            <div class="inventory-item-card">
+                                <img src="images/magic-staff.png" alt="Magic Staff">
+                                <h3>Staff of the Magi</h3>
+                                <p>A powerful magical staff.</p>
+                            </div>
+                            <div class="inventory-item-card">
+                                <img src="images/cloak.png" alt="Cloak of Invisibility">
+                                <h3>Cloak of Invisibility</h3>
+                                <p>A cloak that grants invisibility.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <h3>Iron Sword</h3>
+                                <p>A sturdy iron sword.</p>
+                            </div>
+                            <div class="normal-item-card">
+                                <h3>Leather Armor</h3>
+                                <p>A set of tough leather armor.</p>
+                            </div>
+                            <div class="common-item-card">
+                                <span>Health Potion</span>
+                                <p>Restores 10 HP.</p>
+                            </div>
+                            <div class="common-item-card">
+                                <span>Mana Potion</span>
+                                <p>Restores 10 MP.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="inventory-close" onclick="toggleInventory(this)" data-panel-id="6">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleInventory(button) {
+            console.log('Button clicked:', button);
+            const panelId = button.getAttribute('data-panel-id');
+            const panel = document.querySelector(`.inventory-panel[data-id="${panelId}"]`);
+
+            console.log('Panel ID:', panelId);
+            console.log('Panel found:', panel);
+            if (panel) {
+                panel.classList.toggle('open');
+                console.log('Panel class list after toggle:', panel.classList);
+            }
+        }
+        function toggleDetails(button) {
+            console.log('Button clicked:', button);
+            const panelId = button.getAttribute('data-panel-id');
+            const panel = document.querySelector(`.details-panel[data-id="${panelId}"]`);
+
+            console.log('Panel ID:', panelId);
+            console.log('Panel found:', panel);
+            if (panel) {
+                panel.classList.toggle('open');
+                console.log('Panel class list after toggle:', panel.classList);
+            }
+        }     
+    </script>
+</body>
+
+</html>
