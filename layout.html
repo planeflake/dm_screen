@@ -319,11 +319,30 @@ body {
                         </div>
                         <button class="inventory-close" onclick="toggleInventory(this)" data-panel-id="1">Close</button>
                     </div>
-                    <div class="details-panel" data-id="1">
-                        <h1>Details Overview</h1>
-                        <label for="">Super important details</label>
-                        <button class="details-close" onclick="toggleDetails(this)" data-panel-id="1">Close</button>
-                    </div>
+        <div class="details-panel" data-id="1">
+            <div class="details-content">
+                <div class="details-section">
+                    <h3><i class="fas fa-hat-wizard"></i> Proficiencies</h3>
+                    <ul>
+                        <li><i class="fas fa-book"></i> Arcana (+5)</li>
+                        <li><i class="fas fa-history"></i> History (+4)</li>
+                        <li><i class="fas fa-search"></i> Investigation (+6)</li>
+                    </ul>
+                </div>
+                <div class="details-section">
+                    <h3><i class="fas fa-shield-alt"></i> Resistances</h3>
+                    <ul>
+                        <li><i class="fas fa-fire"></i> Fire</li>
+                        <li><i class="fas fa-snowflake"></i> Cold</li>
+                    </ul>
+                </div>
+                <div class="details-section">
+                    <h3><i class="fas fa-info-circle"></i> Other Information</h3>
+                    <p>Additional details about the character can go here.</p>
+                </div>
+            </div>
+            <button class="details-close" onclick="toggleDetails(this)" data-panel-id="1">Close</button>
+        </div>
                 </div>
             </div>
         <div id="2-card" class="image-container" style="background-image: url('./images/wizard.webp');">
