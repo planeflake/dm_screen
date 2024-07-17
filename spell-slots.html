@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spell Slots Grid</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .spell-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .spell-cell {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .slots {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .slot-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .slot {
+            background: #ddd;
+            border: 1px solid #aaa;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .slot.available {
+            background: red;
+        }
+
+        .slot.used {
+            background: black;
+        }
+
+        .slot.very-large {
+            width: 80px;
+            height: 80px;
+        }
+
+        .slot.large {
+            width: 40px;
+            height: 40px;
+        }
+
+        .slot.medium {
+            width: 30px;
+            height: 30px;
+        }
+
+        .slot.medium-small {
+            width: 25px;
+            height: 25px;
+        }
+
+        .slot.small {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            text-align: left;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="spell-grid" id="spellGrid">
+        <!-- Levels will be dynamically generated here -->
+    </div>
+
+    <!-- Modal -->
+    <div id="spellModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="spellName">Spell Name</h2>
+            <p id="spellDescription">Spell Description</p>
+            <p id="spellStats">Spell Stats</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const spellGrid = document.getElementById('spellGrid');
+            const levels = 9;  // Number of spell levels
+
+            // Example spell data (replace with actual data or API call)
+            const spells = [
+                {
+                    name: "Fireball",
+                    description: "A bright streak flashes from your pointing finger to a point you choose within range and then blossoms with a low roar into an explosion of flame.",
+                    stats: "Level 3, Casting Time: 1 action, Range: 150 feet, Components: V, S, M (a tiny ball of bat guano and sulfur)"
+                },
+                {
+                    name: "Magic Missile",
+                    description: "You create three glowing darts of magical force. Each dart hits a creature of your choice that you can see within range.",
+                    stats: "Level 1, Casting Time: 1 action, Range: 120 feet, Components: V, S"
+                }
+                // Add more spells as needed
+            ];
+
+            // Function to create spell slots
+            function createSlots(level, numSlots, availableSlots, usedSlots) {
+                const cell = document.createElement('div');
+                cell.classList.add('spell-cell');
+                
+                const label = document.createElement('div');
+                label.classList.add('label');
+                label.innerText = toRoman(level);
+                cell.appendChild(label);
+
+                const slotsContainer = document.createElement('div');
+                slotsContainer.classList.add('slots');
+                cell.appendChild(slotsContainer);
+
+                let slotSize = 'small'; // Default to small
+                let layout = [];
+
+                if (numSlots === 0) return; // Skip if no slots
+
+                switch (numSlots) {
+                    case 1:
+                        slotSize = 'very-large';
+                        layout = [1];
+                        break;
+                    case 2:
+                        slotSize = 'large';
+                        layout = [2];
+                        break;
+                    case 3:
+                        slotSize = 'medium';
+                        layout = [3];
+                        break;
+                    case 4:
+                        slotSize = 'medium';
+                        layout = [2, 2];
+                        break;
+                    case 5:
+                        slotSize = 'medium-small';
+                        layout = [3, 2];
+                        break;
+                    case 6:
+                        slotSize = 'medium-small';
+                        layout = [3, 3];
+                        break;
+                    case 7:
+                        slotSize = 'small';
+                        layout = [4, 3];
+                        break;
+                    case 8:
+                        slotSize = 'small';
+                        layout = [4, 4];
+                        break;
+                    case 9:
+                        slotSize = 'small';
+                        layout = [3, 3, 3];
+                        break;
+                    default:
+                        slotSize = 'small';
+                        layout = [1];
+                        break;
+                }
+
+                let availableCount = availableSlots;
+                let usedCount = usedSlots;
+
+                layout.forEach(row => {
+                    const rowContainer = document.createElement('div');
+                    rowContainer.classList.add('slot-row');
+                    for (let i = 0; i < row; i++) {
+                        const slot = document.createElement('div');
+                        slot.classList.add('slot', slotSize);
+                        if (availableCount > 0) {
+                            slot.classList.add('available');
+                            availableCount--;
+                        } else if (usedCount > 0) {
+                            slot.classList.add('used');
+                            slot.addEventListener('click', function() {
+                                showSpellDetails(spells[Math.floor(Math.random() * spells.length)]);
+                            });
+                            usedCount--;
+                        }
+                        rowContainer.appendChild(slot);
+                    }
+                    slotsContainer.appendChild(rowContainer);
+                });
+
+                spellGrid.appendChild(cell);
+            }
+
+            // Function to convert number to Roman numeral
+            function toRoman(num) {
+                const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'];
+                return romanNumerals[num - 1];
+            }
+
+            // Function to show spell details in a modal
+            function showSpellDetails(spell) {
+                const modal = document.getElementById("spellModal");
+                document.getElementById("spellName").innerText = spell.name;
+                document.getElementById("spellDescription").innerText = spell.description;
+                document.getElementById("spellStats").innerText = spell.stats;
+                modal.style.display = "flex";
+            }
+
+            // Function to hide the modal
+            function closeModal() {
+                document.getElementById("spellModal").style.display = "none";
+            }
+
+            // Attach close event to modal close button
+            document.querySelector(".modal .close").addEventListener('click', closeModal);
+
+            // Attach close event to anywhere outside the modal content
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById("spellModal");
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            });
+
+            // Number of slots and available/used slots for each level
+            const slotsData = [
+                { numSlots: 0, available: 0, used: 0 },
+                { numSlots: 6, available: 5, used: 1 },
+                { numSlots: 5, available: 4, used: 1 },
+                { numSlots: 4, available: 3, used: 1 },
+                { numSlots: 3, available: 2, used: 1 },
+                { numSlots: 3, available: 2, used: 1 },
+                { numSlots: 2, available: 1, used: 1 },
+                { numSlots: 2, available: 1, used: 1 },
+                { numSlots: 1, available: 1, used: 0 },
+                { numSlots: 1, available: 0, used: 1 }
+            ];
+
+            // Create grid with dynamic slots
+            for (let i = 1; i <= levels; i++) {
+                const { numSlots, available, used } = slotsData[i];
+                createSlots(i, numSlots, available, used);
+            }
+        });
+    </script>
+</body>
+</html>

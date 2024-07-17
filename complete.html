@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Character Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            overflow-y: auto;
+        }
+
+        .image-container {
+            position: relative;
+            display: inline-block;
+            margin: 10px;
+            width: 350px;
+            height: 450px;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .character-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            text-align: left;
+            color: black;
+            background-color: rgba(255, 255, 255, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .character-card .header {
+            margin-bottom: 10px;
+        }
+
+        .character-card .header h1 {
+            color: red;
+            margin: 0;
+        }
+
+        .character-card .header h3 {
+            margin: 5px 0 0 0;
+        }
+
+        .character-card .stats,
+        .character-card .group {
+            margin-bottom: 10px;
+        }
+
+        .character-card .stats div,
+        .character-card .group div {
+            display: flex;
+            align-items: center;
+        }
+
+        .character-card .stats div i,
+        .character-card .group div i {
+            margin-right: 5px;
+            width: 20px;
+            height: 20px;
+        }
+
+        .spell-slot {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin: 2px;
+            border: 1px solid black;
+        }
+
+        .available-slot {
+            background-color: red;
+        }
+
+        .used-slot {
+            background-color: black;
+        }
+
+        .inventory-content {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-auto-rows: 100px;
+            gap: 10px;
+        }
+
+        .inventory-item-card,
+        .normal-item-card,
+        .common-item-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .inventory-item-card {
+            grid-column: span 2;
+            grid-row: span 3;
+        }
+
+        .normal-item-card {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+
+        .common-item-card {
+            grid-column: span 2;
+            grid-row: span 1;
+        }
+
+        .inventory-item-card img,
+        .normal-item-card img,
+        .common-item-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        .inventory-item-card h3,
+        .normal-item-card h3,
+        .common-item-card h3,
+        .inventory-item-card p,
+        .normal-item-card p,
+        .common-item-card p {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            padding: 5px 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .inventory-button,
+        .details-button {
+            background: grey;
+            border-radius: 15px;
+            color: black;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .inventory-button {
+            margin-right: auto;
+        }
+
+        .details-button {
+            margin-left: auto;
+        }
+
+        .inventory-panel,
+        .details-panel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 70%;
+            height: 70%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(139, 69, 19, 0.95);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            overflow: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .inventory-panel.open,
+        .details-panel.open {
+            display: block;
+        }
+
+        .inventory-close {
+            display: block;
+            margin: 20px auto 0;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background-color: #c0392b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .spell-slots {
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            padding: 5px;
+            text-align: center;
+        }
+
+        .stats {
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            padding: 5px;
+        }
+
+        .attributes {
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        .spell-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .spell-cell {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .slots {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .slot-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .slot {
+            background: #ddd;
+            border: 1px solid #aaa;
+            border-radius: 3px;
+        }
+
+        .slot.available {
+            background: red;
+        }
+
+        .slot.used {
+            background: black;
+        }
+
+        .slot.very-large {
+            width: 80px;
+            height: 80px;
+        }
+
+        .slot.large {
+            width: 40px;
+            height: 40px;
+        }
+
+        .slot.medium {
+            width: 30px;
+            height: 30px;
+        }
+
+        .slot.medium-small {
+            width: 25px;
+            height: 25px;
+        }
+
+        .slot.small {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Cards 1-6 -->
+        <div id="1-card" class="image-container" style="background-image: url('./images/druid.webp');">
+            <div class="character-card">
+                <div class="header">
+                    <h1>Elrond</h1>
+                    <h3>Elf Wizard</h3>
+                </div>
+                <div class="stats">
+                    <div class="stats1">
+                        <i class="fas fa-dumbbell"></i> Str: 10
+                        <i class="fas fa-running"></i> Dex: 14
+                        <i class="fas fa-heartbeat"></i> Con: 12
+                    </div>
+                    <div class="stats2">
+                        <i class="fas fa-brain"></i> Int: 18
+                        <i class="fas fa-eye"></i> Wis: 13
+                        <i class="fas fa-theater-masks"></i> Cha: 11
+                    </div>
+                </div>
+                <div class="attributes">
+                    <div class="attributes-1">
+                        <i class="fas fa-balance-scale"></i> Alignment: Lawful Good
+                        <i class="fas fa-shield-alt"></i> AC: 15
+                    </div>
+                    <div class="attributes-2">
+                        <i class="fas fa-heart"></i> Hit Dice: 5d6
+                        <i class="fas fa-tachometer-alt"></i> Speed: 30
+                    </div>
+                    <i class="fas fa-eye"></i> Passive Perception: 14
+                </div>
+                <div class="spell-slots" id="spell-slots-1">
+                    <!-- Spell slots will be dynamically generated here -->
+                </div>
+                <div class="button-container">
+                    <button class="inventory-button" onclick="toggleInventory(this)" data-panel-id="1">Inventory</button>
+                    <button class="details-button" onclick="toggleDetails(this)" data-panel-id="1">Details</button>
+                </div>
+                <div class="inventory-panel" data-id="1">
+                    <div class="inventory-content">
+                        <div class="inventory-item-card">
+                            <img src="./images/magic-staff.webp" alt="Magic Staff">
+                            <h3>Staff of the Magi</h3>
+                            <p>A powerful magical staff.</p>
+                        </div>
+                        <div class="inventory-item-card">
+                            <img src="./images/cloak.jpeg" alt="Cloak of Invisibility">
+                            <h3>Cloak of Invisibility</h3>
+                            <p>A cloak that grants invisibility.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/iron-sword.jpeg" alt="Magic Staff">
+                            <h3>Iron Sword</h3>
+                            <p>A sturdy iron sword.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                            <h3>Leather Armor</h3>
+                            <p>A set of tough leather armor.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <h3>Tough Rope</h3>
+                            <p>A sturdy length of rope.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                            <h3>Leather Armor</h3>
+                            <p>A set of tough leather armor.</p>
+                        </div>
+                        <div class="common-item-card">
+                            <img src="./images/health-potion.jpeg" alt="Magic Staff">
+                            <span>Health Potion</span>
+                            <p>Restores 10 HP.</p>
+                        </div>
+                        <div class="common-item-card">
+                            <img src="./images/mana-potion.jpeg" alt="Magic Staff">
+                            <span>Mana Potion</span>
+                            <p>Restores 10 MP.</p>
+                        </div>
+                    </div>
+                    <button class="inventory-close" onclick="toggleInventory(this)" data-panel-id="1">Close</button>
+                </div>
+                <div class="details-panel" data-id="1">
+                    <div class="details-content">
+                        <div class="details-section">
+                            <h3><i class="fas fa-hat-wizard"></i> Proficiencies</h3>
+                            <ul>
+                                <li><i class="fas fa-book"></i> Arcana (+5)</li>
+                                <li><i class="fas fa-history"></i> History (+4)</li>
+                                <li><i class="fas fa-search"></i> Investigation (+6)</li>
+                            </ul>
+                        </div>
+                        <div class="details-section">
+                            <h3><i class="fas fa-shield-alt"></i> Resistances</h3>
+                            <ul>
+                                <li><i class="fas fa-fire"></i> Fire</li>
+                                <li><i class="fas fa-snowflake"></i> Cold</li>
+                            </ul>
+                        </div>
+                        <div class="details-section">
+                            <h3><i class="fas fa-info-circle"></i> Other Information</h3>
+                            <p>Additional details about the character can go here.</p>
+                        </div>
+                    </div>
+                    <button class="details-close" onclick="toggleDetails(this)" data-panel-id="1">Close</button>
+                </div>
+            </div>
+        </div>
+        <!-- Repeat the structure for cards 2-6 -->
+        <div id="2-card" class="image-container" style="background-image: url('./images/wizard.webp');">
+            <div class="character-card">
+                <div class="header">
+                    <h1>Elrond</h1>
+                    <h3>Elf Wizard</h3>
+                </div>
+                <div class="stats">
+                    <div class="stats1">
+                        <i class="fas fa-dumbbell"></i> Str: 10
+                        <i class="fas fa-running"></i> Dex: 14
+                        <i class="fas fa-heartbeat"></i> Con: 12
+                    </div>
+                    <div class="stats2">
+                        <i class="fas fa-brain"></i> Int: 18
+                        <i class="fas fa-eye"></i> Wis: 13
+                        <i class="fas fa-theater-masks"></i> Cha: 11
+                    </div>
+                </div>
+                <div class="attributes">
+                    <div class="attributes-1">
+                        <i class="fas fa-balance-scale"></i> Alignment: Lawful Good
+                        <i class="fas fa-shield-alt"></i> AC: 15
+                    </div>
+                    <div class="attributes-2">
+                        <i class="fas fa-heart"></i> Hit Dice: 5d6
+                        <i class="fas fa-tachometer-alt"></i> Speed: 30
+                    </div>
+                    <i class="fas fa-eye"></i> Passive Perception: 14
+                </div>
+                <div class="spell-slots" id="spell-slots-2">
+                    <!-- Spell slots will be dynamically generated here -->
+                </div>
+                <div class="button-container">
+                    <button class="inventory-button" onclick="toggleInventory(this)" data-panel-id="2">Inventory</button>
+                    <button class="details-button" onclick="toggleDetails(this)" data-panel-id="2">Details</button>
+                </div>
+                <div class="inventory-panel" data-id="2">
+                    <div class="inventory-content">
+                        <div class="inventory-item-card">
+                            <img src="./images/magic-staff.webp" alt="Magic Staff">
+                            <h3>Staff of the Magi</h3>
+                            <p>A powerful magical staff.</p>
+                        </div>
+                        <div class="inventory-item-card">
+                            <img src="./images/cloak.jpeg" alt="Cloak of Invisibility">
+                            <h3>Cloak of Invisibility</h3>
+                            <p>A cloak that grants invisibility.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/iron-sword.jpeg" alt="Magic Staff">
+                            <h3>Iron Sword</h3>
+                            <p>A sturdy iron sword.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                            <h3>Leather Armor</h3>
+                            <p>A set of tough leather armor.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <h3>Tough Rope</h3>
+                            <p>A sturdy length of rope.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                            <h3>Leather Armor</h3>
+                            <p>A set of tough leather armor.</p>
+                        </div>
+                        <div class="common-item-card">
+                            <img src="./images/health-potion.jpeg" alt="Magic Staff">
+                            <span>Health Potion</span>
+                            <p>Restores 10 HP.</p>
+                        </div>
+                        <div class="common-item-card">
+                            <img src="./images/mana-potion.jpeg" alt="Magic Staff">
+                            <span>Mana Potion</span>
+                            <p>Restores 10 MP.</p>
+                        </div>
+                    </div>
+                    <button class="inventory-close" onclick="toggleInventory(this)" data-panel-id="2">Close</button>
+                </div>
+                <div class="details-panel" data-id="2">
+                    <div class="details-content">
+                        <div class="details-section">
+                            <h3><i class="fas fa-hat-wizard"></i> Proficiencies</h3>
+                            <ul>
+                                <li><i class="fas fa-book"></i> Arcana (+5)</li>
+                                <li><i class="fas fa-history"></i> History (+4)</li>
+                                <li><i class="fas fa-search"></i> Investigation (+6)</li>
+                            </ul>
+                        </div>
+                        <div class="details-section">
+                            <h3><i class="fas fa-shield-alt"></i> Resistances</h3>
+                            <ul>
+                                <li><i class="fas fa-fire"></i> Fire</li>
+                                <li><i class="fas fa-snowflake"></i> Cold</li>
+                            </ul>
+                        </div>
+                        <div class="details-section">
+                            <h3><i class="fas fa-info-circle"></i> Other Information</h3>
+                            <p>Additional details about the character can go here.</p>
+                        </div>
+                    </div>
+                    <button class="details-close" onclick="toggleDetails(this)" data-panel-id="2">Close</button>
+                </div>
+            </div>
+        </div>
+        <div id="3-card" class="image-container" style="background-image: url('./images/paladin.webp');">
+            <div class="character-card">
+                <div class="header">
+                    <h1>Elrond</h1>
+                    <h3>Elf Wizard</h3>
+                </div>
+                <div class="stats">
+                    <div class="stats1">
+                        <i class="fas fa-dumbbell"></i> Str: 10
+                        <i class="fas fa-running"></i> Dex: 14
+                        <i class="fas fa-heartbeat"></i> Con: 12
+                    </div>
+                    <div class="stats2">
+                        <i class="fas fa-brain"></i> Int: 18
+                        <i class="fas fa-eye"></i> Wis: 13
+                        <i class="fas fa-theater-masks"></i> Cha: 11
+                    </div>
+                </div>
+                <div class="attributes">
+                    <div class="attributes-1">
+                        <i class="fas fa-balance-scale"></i> Alignment: Lawful Good
+                        <i class="fas fa-shield-alt"></i> AC: 15
+                    </div>
+                    <div class="attributes-2">
+                        <i class="fas fa-heart"></i> Hit Dice: 5d6
+                        <i class="fas fa-tachometer-alt"></i> Speed: 30
+                    </div>
+                    <i class="fas fa-eye"></i> Passive Perception: 14
+                </div>
+                <div class="spell-slots" id="spell-slots-3">
+                    <!-- Spell slots will be dynamically generated here -->
+                </div>
+                <div class="button-container">
+                    <button class="inventory-button" onclick="toggleInventory(this)" data-panel-id="3">Inventory</button>
+                    <button class="details-button" onclick="toggleDetails(this)" data-panel-id="3">Details</button>
+                </div>
+                <div class="inventory-panel" data-id="3">
+                    <div class="inventory-content">
+                        <div class="inventory-item-card">
+                            <img src="./images/magic-staff.webp" alt="Magic Staff">
+                            <h3>Staff of the Magi</h3>
+                            <p>A powerful magical staff.</p>
+                        </div>
+                        <div class="inventory-item-card">
+                            <img src="./images/cloak.jpeg" alt="Cloak of Invisibility">
+                            <h3>Cloak of Invisibility</h3>
+                            <p>A cloak that grants invisibility.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/iron-sword.jpeg" alt="Magic Staff">
+                            <h3>Iron Sword</h3>
+                            <p>A sturdy iron sword.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                            <h3>Leather Armor</h3>
+                            <p>A set of tough leather armor.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <h3>Tough Rope</h3>
+                            <p>A sturdy length of rope.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                            <h3>Leather Armor</h3>
+                            <p>A set of tough leather armor.</p>
+                        </div>
+                        <div class="common-item-card">
+                            <img src="./images/health-potion.jpeg" alt="Magic Staff">
+                            <span>Health Potion</span>
+                            <p>Restores 10 HP.</p>
+                        </div>
+                        <div class="common-item-card">
+                            <img src="./images/mana-potion.jpeg" alt="Magic Staff">
+                            <span>Mana Potion</span>
+                            <p>Restores 10 MP.</p>
+                        </div>
+                    </div>
+                    <button class="inventory-close" onclick="toggleInventory(this)" data-panel-id="3">Close</button>
+                </div>
+                <div class="details-panel" data-id="3">
+                    <div class="details-content">
+                        <div class="details-section">
+                            <h3><i class="fas fa-hat-wizard"></i> Proficiencies</h3>
+                            <ul>
+                                <li><i class="fas fa-book"></i> Arcana (+5)</li>
+                                <li><i class="fas fa-history"></i> History (+4)</li>
+                                <li><i class="fas fa-search"></i> Investigation (+6)</li>
+                            </ul>
+                        </div>
+                        <div class="details-section">
+                            <h3><i class="fas fa-shield-alt"></i> Resistances</h3>
+                            <ul>
+                                <li><i class="fas fa-fire"></i> Fire</li>
+                                <li><i class="fas fa-snowflake"></i> Cold</li>
+                            </ul>
+                        </div>
+                        <div class="details-section">
+                            <h3><i class="fas fa-info-circle"></i> Other Information</h3>
+                            <p>Additional details about the character can go here.</p>
+                        </div>
+                    </div>
+                    <button class="details-close" onclick="toggleDetails(this)" data-panel-id="3">Close</button>
+                </div>
+            </div>
+        </div>
+        <div id="4-card" class="image-container" style="background-image: url('./images/druid.webp');">
+            <div class="character-card">
+                <div class="header">
+                    <h1>Elrond</h1>
+                    <h3>Elf Wizard</h3>
+                </div>
+                <div class="stats">
+                    <div class="stats1">
+                        <i class="fas fa-dumbbell"></i> Str: 10
+                        <i class="fas fa-running"></i> Dex: 14
+                        <i class="fas fa-heartbeat"></i> Con: 12
+                    </div>
+                    <div class="stats2">
+                        <i class="fas fa-brain"></i> Int: 18
+                        <i class="fas fa-eye"></i> Wis: 13
+                        <i class="fas fa-theater-masks"></i> Cha: 11
+                    </div>
+                </div>
+                <div class="attributes">
+                    <div class="attributes-1">
+                        <i class="fas fa-balance-scale"></i> Alignment: Lawful Good
+                        <i class="fas fa-shield-alt"></i> AC: 15
+                    </div>
+                    <div class="attributes-2">
+                        <i class="fas fa-heart"></i> Hit Dice: 5d6
+                        <i class="fas fa-tachometer-alt"></i> Speed: 30
+                    </div>
+                    <i class="fas fa-eye"></i> Passive Perception: 14
+                </div>
+                <div class="spell-slots" id="spell-slots-4">
+                    <!-- Spell slots will be dynamically generated here -->
+                </div>
+                <div class="button-container">
+                    <button class="inventory-button" onclick="toggleInventory(this)" data-panel-id="4">Inventory</button>
+                    <button class="details-button" onclick="toggleDetails(this)" data-panel-id="4">Details</button>
+                </div>
+                <div class="inventory-panel" data-id="4">
+                    <div class="inventory-content">
+                        <div class="inventory-item-card">
+                            <img src="./images/magic-staff.webp" alt="Magic Staff">
+                            <h3>Staff of the Magi</h3>
+                            <p>A powerful magical staff.</p>
+                        </div>
+                        <div class="inventory-item-card">
+                            <img src="./images/cloak.jpeg" alt="Cloak of Invisibility">
+                            <h3>Cloak of Invisibility</h3>
+                            <p>A cloak that grants invisibility.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/iron-sword.jpeg" alt="Magic Staff">
+                            <h3>Iron Sword</h3>
+                            <p>A sturdy iron sword.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                            <h3>Leather Armor</h3>
+                            <p>A set of tough leather armor.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <h3>Tough Rope</h3>
+                            <p>A sturdy length of rope.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                            <h3>Leather Armor</h3>
+                            <p>A set of tough leather armor.</p>
+                        </div>
+                        <div class="common-item-card">
+                            <img src="./images/health-potion.jpeg" alt="Magic Staff">
+                            <span>Health Potion</span>
+                            <p>Restores 10 HP.</p>
+                        </div>
+                        <div class="common-item-card">
+                            <img src="./images/mana-potion.jpeg" alt="Magic Staff">
+                            <span>Mana Potion</span>
+                            <p>Restores 10 MP.</p>
+                        </div>
+                    </div>
+                    <button class="inventory-close" onclick="toggleInventory(this)" data-panel-id="4">Close</button>
+                </div>
+                <div class="details-panel" data-id="4">
+                    <div class="details-content">
+                        <div class="details-section">
+                            <h3><i class="fas fa-hat-wizard"></i> Proficiencies</h3>
+                            <ul>
+                                <li><i class="fas fa-book"></i> Arcana (+5)</li>
+                                <li><i class="fas fa-history"></i> History (+4)</li>
+                                <li><i class="fas fa-search"></i> Investigation (+6)</li>
+                            </ul>
+                        </div>
+                        <div class="details-section">
+                            <h3><i class="fas fa-shield-alt"></i> Resistances</h3>
+                            <ul>
+                                <li><i class="fas fa-fire"></i> Fire</li>
+                                <li><i class="fas fa-snowflake"></i> Cold</li>
+                            </ul>
+                        </div>
+                        <div class="details-section">
+                            <h3><i class="fas fa-info-circle"></i> Other Information</h3>
+                            <p>Additional details about the character can go here.</p>
+                        </div>
+                    </div>
+                    <button class="details-close" onclick="toggleDetails(this)" data-panel-id="4">Close</button>
+                </div>
+            </div>
+        </div>
+        <div id="5-card" class="image-container" style="background-image: url('./images/wizard.webp');">
+            <div class="character-card">
+                <div class="header">
+                    <h1>Elrond</h1>
+                    <h3>Elf Wizard</h3>
+                </div>
+                <div class="stats">
+                    <div class="stats1">
+                        <i class="fas fa-dumbbell"></i> Str: 10
+                        <i class="fas fa-running"></i> Dex: 14
+                        <i class="fas fa-heartbeat"></i> Con: 12
+                    </div>
+                    <div class="stats2">
+                        <i class="fas fa-brain"></i> Int: 18
+                        <i class="fas fa-eye"></i> Wis: 13
+                        <i class="fas fa-theater-masks"></i> Cha: 11
+                    </div>
+                </div>
+                <div class="attributes">
+                    <div class="attributes-1">
+                        <i class="fas fa-balance-scale"></i> Alignment: Lawful Good
+                        <i class="fas fa-shield-alt"></i> AC: 15
+                    </div>
+                    <div class="attributes-2">
+                        <i class="fas fa-heart"></i> Hit Dice: 5d6
+                        <i class="fas fa-tachometer-alt"></i> Speed: 30
+                    </div>
+                    <i class="fas fa-eye"></i> Passive Perception: 14
+                </div>
+                <div class="spell-slots" id="spell-slots-5">
+                    <!-- Spell slots will be dynamically generated here -->
+                </div>
+                <div class="button-container">
+                    <button class="inventory-button" onclick="toggleInventory(this)" data-panel-id="5">Inventory</button>
+                    <button class="details-button" onclick="toggleDetails(this)" data-panel-id="5">Details</button>
+                </div>
+                <div class="inventory-panel" data-id="5">
+                    <div class="inventory-content">
+                        <div class="inventory-item-card">
+                            <img src="./images/magic-staff.webp" alt="Magic Staff">
+                            <h3>Staff of the Magi</h3>
+                            <p>A powerful magical staff.</p>
+                        </div>
+                        <div class="inventory-item-card">
+                            <img src="./images/cloak.jpeg" alt="Cloak of Invisibility">
+                            <h3>Cloak of Invisibility</h3>
+                            <p>A cloak that grants invisibility.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/iron-sword.jpeg" alt="Magic Staff">
+                            <h3>Iron Sword</h3>
+                            <p>A sturdy iron sword.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                            <h3>Leather Armor</h3>
+                            <p>A set of tough leather armor.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <h3>Tough Rope</h3>
+                            <p>A sturdy length of rope.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                            <h3>Leather Armor</h3>
+                            <p>A set of tough leather armor.</p>
+                        </div>
+                        <div class="common-item-card">
+                            <img src="./images/health-potion.jpeg" alt="Magic Staff">
+                            <span>Health Potion</span>
+                            <p>Restores 10 HP.</p>
+                        </div>
+                        <div class="common-item-card">
+                            <img src="./images/mana-potion.jpeg" alt="Magic Staff">
+                            <span>Mana Potion</span>
+                            <p>Restores 10 MP.</p>
+                        </div>
+                    </div>
+                    <button class="inventory-close" onclick="toggleInventory(this)" data-panel-id="5">Close</button>
+                </div>
+                <div class="details-panel" data-id="5">
+                    <div class="details-content">
+                        <div class="details-section">
+                            <h3><i class="fas fa-hat-wizard"></i> Proficiencies</h3>
+                            <ul>
+                                <li><i class="fas fa-book"></i> Arcana (+5)</li>
+                                <li><i class="fas fa-history"></i> History (+4)</li>
+                                <li><i class="fas fa-search"></i> Investigation (+6)</li>
+                            </ul>
+                        </div>
+                        <div class="details-section">
+                            <h3><i class="fas fa-shield-alt"></i> Resistances</h3>
+                            <ul>
+                                <li><i class="fas fa-fire"></i> Fire</li>
+                                <li><i class="fas fa-snowflake"></i> Cold</li>
+                            </ul>
+                        </div>
+                        <div class="details-section">
+                            <h3><i class="fas fa-info-circle"></i> Other Information</h3>
+                            <p>Additional details about the character can go here.</p>
+                        </div>
+                    </div>
+                    <button class="details-close" onclick="toggleDetails(this)" data-panel-id="5">Close</button>
+                </div>
+            </div>
+        </div>
+        <div id="6-card" class="image-container" style="background-image: url('./images/paladin.webp');">
+            <div class="character-card">
+                <div class="header">
+                    <h1>Elrond</h1>
+                    <h3>Elf Wizard</h3>
+                </div>
+                <div class="stats">
+                    <div class="stats1">
+                        <i class="fas fa-dumbbell"></i> Str: 10
+                        <i class="fas fa-running"></i> Dex: 14
+                        <i class="fas fa-heartbeat"></i> Con: 12
+                    </div>
+                    <div class="stats2">
+                        <i class="fas fa-brain"></i> Int: 18
+                        <i class="fas fa-eye"></i> Wis: 13
+                        <i class="fas fa-theater-masks"></i> Cha: 11
+                    </div>
+                </div>
+                <div class="attributes">
+                    <div class="attributes-1">
+                        <i class="fas fa-balance-scale"></i> Alignment: Lawful Good
+                        <i class="fas fa-shield-alt"></i> AC: 15
+                    </div>
+                    <div class="attributes-2">
+                        <i class="fas fa-heart"></i> Hit Dice: 5d6
+                        <i class="fas fa-tachometer-alt"></i> Speed: 30
+                    </div>
+                    <i class="fas fa-eye"></i> Passive Perception: 14
+                </div>
+                <div class="spell-slots" id="spell-slots-6">
+                    <!-- Spell slots will be dynamically generated here -->
+                </div>
+                <div class="button-container">
+                    <button class="inventory-button" onclick="toggleInventory(this)" data-panel-id="6">Inventory</button>
+                    <button class="details-button" onclick="toggleDetails(this)" data-panel-id="6">Details</button>
+                </div>
+                <div class="inventory-panel" data-id="6">
+                    <div class="inventory-content">
+                        <div class="inventory-item-card">
+                            <img src="./images/magic-staff.webp" alt="Magic Staff">
+                            <h3>Staff of the Magi</h3>
+                            <p>A powerful magical staff.</p>
+                        </div>
+                        <div class="inventory-item-card">
+                            <img src="./images/cloak.jpeg" alt="Cloak of Invisibility">
+                            <h3>Cloak of Invisibility</h3>
+                            <p>A cloak that grants invisibility.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/iron-sword.jpeg" alt="Magic Staff">
+                            <h3>Iron Sword</h3>
+                            <p>A sturdy iron sword.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                            <h3>Leather Armor</h3>
+                            <p>A set of tough leather armor.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <h3>Tough Rope</h3>
+                            <p>A sturdy length of rope.</p>
+                        </div>
+                        <div class="normal-item-card">
+                            <img src="./images/leather-armor.jpeg" alt="Magic Staff">
+                            <h3>Leather Armor</h3>
+                            <p>A set of tough leather armor.</p>
+                        </div>
+                        <div class="common-item-card">
+                            <img src="./images/health-potion.jpeg" alt="Magic Staff">
+                            <span>Health Potion</span>
+                            <p>Restores 10 HP.</p>
+                        </div>
+                        <div class="common-item-card">
+                            <img src="./images/mana-potion.jpeg" alt="Magic Staff">
+                            <span>Mana Potion</span>
+                            <p>Restores 10 MP.</p>
+                        </div>
+                    </div>
+                    <button class="inventory-close" onclick="toggleInventory(this)" data-panel-id="6">Close</button>
+                </div>
+                <div class="details-panel" data-id="6">
+                    <div class="details-content">
+                        <div class="details-section">
+                            <h3><i class="fas fa-hat-wizard"></i> Proficiencies</h3>
+                            <ul>
+                                <li><i class="fas fa-book"></i> Arcana (+5)</li>
+                                <li><i class="fas fa-history"></i> History (+4)</li>
+                                <li><i class="fas fa-search"></i> Investigation (+6)</li>
+                            </ul>
+                        </div>
+                        <div class="details-section">
+                            <h3><i class="fas fa-shield-alt"></i> Resistances</h3>
+                            <ul>
+                                <li><i class="fas fa-fire"></i> Fire</li>
+                                <li><i class="fas fa-snowflake"></i> Cold</li>
+                            </ul>
+                        </div>
+                        <div class="details-section">
+                            <h3><i class="fas fa-info-circle"></i> Other Information</h3>
+                            <p>Additional details about the character can go here.</p>
+                        </div>
+                    </div>
+                    <button class="details-close" onclick="toggleDetails(this)" data-panel-id="6">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleInventory(button) {
+            const panelId = button.getAttribute('data-panel-id');
+            const panel = document.querySelector(`.inventory-panel[data-id="${panelId}"]`);
+            if (panel) {
+                panel.classList.toggle('open');
+            }
+        }
+
+        function toggleDetails(button) {
+            const panelId = button.getAttribute('data-panel-id');
+            const panel = document.querySelector(`.details-panel[data-id="${panelId}"]`);
+            if (panel) {
+                panel.classList.toggle('open');
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const levelsData = {
+                1: { numSlots: 2, available: 1, used: 1 },
+                2: { numSlots: 3, available: 2, used: 1 },
+                3: { numSlots: 4, available: 2, used: 2 },
+                4: { numSlots: 6, available: 4, used: 2 },
+                5: { numSlots: 7, available: 5, used: 2 },
+                6: { numSlots: 9, available: 6, used: 3 }
+            };
+
+            function createSpellSlots(containerId, levelsData) {
+                const spellSlotsContainer = document.getElementById(containerId);
+
+                Object.keys(levelsData).forEach((level) => {
+                    const levelData = levelsData[level];
+
+                    const cell = document.createElement('div');
+                    cell.classList.add('spell-cell');
+
+                    const label = document.createElement('div');
+                    label.classList.add('label');
+                    label.innerText = toRoman(level);
+                    cell.appendChild(label);
+
+                    const slotsContainer = document.createElement('div');
+                    slotsContainer.classList.add('slots');
+                    cell.appendChild(slotsContainer);
+
+                    let slotSize = 'small'; // Default to small
+                    let layout = [];
+
+                    if (levelData.numSlots === 0) return; // Skip if no slots
+
+                    switch (levelData.numSlots) {
+                        case 1:
+                            slotSize = 'very-large';
+                            layout = [1];
+                            break;
+                        case 2:
+                            slotSize = 'large';
+                            layout = [2];
+                            break;
+                        case 3:
+                            slotSize = 'medium';
+                            layout = [3];
+                            break;
+                        case 4:
+                            slotSize = 'medium';
+                            layout = [2, 2];
+                            break;
+                        case 5:
+                            slotSize = 'medium-small';
+                            layout = [3, 2];
+                            break;
+                        case 6:
+                            slotSize = 'medium-small';
+                            layout = [3, 3];
+                            break;
+                        case 7:
+                            slotSize = 'small';
+                            layout = [4, 3];
+                            break;
+                        case 8:
+                            slotSize = 'small';
+                            layout = [4, 4];
+                            break;
+                        case 9:
+                            slotSize = 'small';
+                            layout = [3, 3, 3];
+                            break;
+                        default:
+                            slotSize = 'small';
+                            layout = [1];
+                            break;
+                    }
+
+                    let availableCount = levelData.available;
+                    let usedCount = levelData.used;
+
+                    layout.forEach(row => {
+                        const rowContainer = document.createElement('div');
+                        rowContainer.classList.add('slot-row');
+                        for (let i = 0; i < row; i++) {
+                            const slot = document.createElement('div');
+                            slot.classList.add('slot', slotSize);
+                            if (availableCount > 0) {
+                                slot.classList.add('available');
+                                availableCount--;
+                            } else if (usedCount > 0) {
+                                slot.classList.add('used');
+                                usedCount--;
+                            }
+                            rowContainer.appendChild(slot);
+                        }
+                        slotsContainer.appendChild(rowContainer);
+                    });
+
+                    spellSlotsContainer.appendChild(cell);
+                });
+            }
+
+            function toRoman(num) {
+                const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'];
+                return romanNumerals[num - 1];
+            }
+
+            for (let i = 1; i <= 6; i++) {
+                createSpellSlots(`spell-slots-${i}`, levelsData[i]);
+            }
+        });
+    </script>
+</body>
+
+</html>
